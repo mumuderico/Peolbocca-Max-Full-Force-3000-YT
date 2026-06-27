@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+downloads/*
+!downloads/.gitkeep
+data/my_scripts/*
+!data/my_scripts/.gitkeep
+*.mp3
+*.mp4
+*.avi
+*.mov
+*.webm
+.streamlit/secrets.toml
