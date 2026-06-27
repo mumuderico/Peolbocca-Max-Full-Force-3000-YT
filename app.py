@@ -1,4 +1,5 @@
 import streamlit as st
+from ui.tab_script_writer import render_script_writer
 
 st.set_page_config(page_title="Content Creator Tool", layout="wide")
 st.title("Content Creator Tool")
@@ -8,7 +9,7 @@ tab1, tab2, tab3, tab4 = st.tabs(
 )
 
 with tab1:
-    st.info("Script Writer — coming soon")
+    render_script_writer()
 
 with tab2:
     st.info("Downloader — coming soon")
