@@ -2,6 +2,7 @@ import streamlit as st
 from ui.tab_script_writer import render_script_writer
 from ui.tab_downloader import render_downloader
 from ui.tab_transcript import render_transcript
+from ui.tab_caption_remover import render_caption_remover
 
 st.set_page_config(page_title="Content Creator Tool", layout="wide")
 st.title("Content Creator Tool")
@@ -20,4 +21,4 @@ with tab3:
     render_transcript()
 
 with tab4:
-    st.info("Caption Remover — coming soon")
+    render_caption_remover()
