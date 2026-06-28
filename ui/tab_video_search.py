@@ -32,6 +32,8 @@ def render_video_search():
             return
         with st.spinner("Searching YouTube Shorts and TikTok..."):
             results, errors = search_videos(keyword.strip(), max_results)
+            for k in [k for k in st.session_state if k.startswith("sel_")]:
+                del st.session_state[k]
             st.session_state["search_results"] = results
             st.session_state["search_selections"] = {}
             for err in errors:
