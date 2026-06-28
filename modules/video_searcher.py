@@ -55,4 +55,4 @@ def search_videos(keyword: str, max_results: int = 10) -> tuple[list[dict], list
                 errors.append(f"{label} search unavailable: {exc}")
 
     random.shuffle(all_results)
-    return all_results, errors
+    return all_results[:max_results], errors
