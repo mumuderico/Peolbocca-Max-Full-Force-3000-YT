@@ -34,7 +34,7 @@ def test_search_returns_expected_keys(mocker):
             assert key in result, f"Missing key: {key}"
 
 
-def test_partial_failure_returns_remaining_results(mocker):
+def test_search_success_returns_results_and_no_errors(mocker):
     good_result = {
         "title": "Good Video",
         "url": "https://www.youtube.com/shorts/abc123",
@@ -43,27 +43,21 @@ def test_partial_failure_returns_remaining_results(mocker):
         "duration": 30,
         "platform": "youtube_shorts",
     }
-
-    def fake_search(keyword, n, platform):
-        if platform == "tiktok":
-            raise Exception("TikTok rate limited")
-        return [good_result]
-
-    mocker.patch("modules.video_searcher._search_platform", side_effect=fake_search)
+    mocker.patch("modules.video_searcher._search_platform", return_value=[good_result])
 
     results, errors = search_videos("morning routine", max_results=2)
 
     assert len(results) == 1
     assert results[0]["platform"] == "youtube_shorts"
-    assert len(errors) == 1
-    assert "TikTok" in errors[0]
+    assert len(errors) == 0
 
 
-def test_both_platforms_fail_returns_empty_results_and_two_errors(mocker):
+def test_search_failure_returns_empty_results_and_error(mocker):
     mocker.patch(
         "modules.video_searcher._search_platform",
         side_effect=Exception("network error"),
     )
     results, errors = search_videos("keyword", max_results=4)
     assert results == []
-    assert len(errors) == 2
+    assert len(errors) == 1
+    assert "YouTube Shorts" in errors[0]
