@@ -41,7 +41,7 @@ def render_channel_ranking():
     st.caption("Top channels dominating YouTube trending right now, by country.")
 
     if not config.YOUTUBE_API_KEY:
-        st.error("Add your YOUTUBE_API_KEY to config.py to use this feature.")
+        st.error("Add your YOUTUBE_API_KEY to config.py")
         return
 
     col1, col2 = st.columns([2, 2])
@@ -77,11 +77,12 @@ def render_channel_ranking():
                 elif "400" in msg or "invalid" in msg.lower():
                     st.error("Invalid YouTube API key. Check YOUTUBE_API_KEY in config.py.")
                 else:
-                    st.error(f"Failed to fetch rankings: {e}")
+                    st.error(str(e))
                 return
 
     results = st.session_state.get(cache_key)
     if not results:
+        st.info("No trending data available for this country. Try another.")
         return
 
     sort_key = "trending_count" if "Videos" in metric else "trending_views"
@@ -100,7 +101,7 @@ def render_channel_ranking():
             st.markdown(
                 f'<a href="{yt_url}" target="_blank" style="color:#e2e8f0;font-weight:600;text-decoration:none;">{ch["name"]}</a>'
                 f'&nbsp;&nbsp;·&nbsp;&nbsp;👥 {_fmt_number(ch["subscribers"])} subs'
-                f'&nbsp;&nbsp;·&nbsp;&nbsp;🔥 {ch["trending_count"]} trending'
+                f'&nbsp;&nbsp;·&nbsp;&nbsp;🔥 {_fmt_number(ch["trending_count"])} trending'
                 f'&nbsp;&nbsp;·&nbsp;&nbsp;👁 {_fmt_number(ch["trending_views"])} views',
                 unsafe_allow_html=True,
             )
