@@ -57,3 +57,13 @@ def test_partial_failure_returns_remaining_results(mocker):
     assert results[0]["platform"] == "youtube_shorts"
     assert len(errors) == 1
     assert "TikTok" in errors[0]
+
+
+def test_both_platforms_fail_returns_empty_results_and_two_errors(mocker):
+    mocker.patch(
+        "modules.video_searcher._search_platform",
+        side_effect=Exception("network error"),
+    )
+    results, errors = search_videos("keyword", max_results=4)
+    assert results == []
+    assert len(errors) == 2
