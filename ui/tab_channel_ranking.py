@@ -72,15 +72,17 @@ def render_channel_ranking():
                 st.session_state[cache_ts_key] = time.time()
             except Exception as e:
                 msg = str(e)
-                if "quota" in msg.lower() or "403" in msg:
-                    st.error("YouTube API quota exceeded. Try again tomorrow.")
-                elif "400" in msg or "invalid" in msg.lower():
+                if "invalid" in msg.lower() or "400" in msg:
                     st.error("Invalid YouTube API key. Check YOUTUBE_API_KEY in config.py.")
+                elif "quota" in msg.lower() or "403" in msg:
+                    st.error("YouTube API quota exceeded. Try again tomorrow.")
                 else:
                     st.error(str(e))
                 return
 
-    results = st.session_state.get(cache_key)
+    if cache_key not in st.session_state:
+        return
+    results = st.session_state[cache_key]
     if not results:
         st.info("No trending data available for this country. Try another.")
         return

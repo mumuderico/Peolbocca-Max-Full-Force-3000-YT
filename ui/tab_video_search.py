@@ -4,24 +4,27 @@ from modules.video_searcher import search_videos
 from modules.downloader import download_media
 
 
-def _fmt_views(n: int) -> str:
+def _fmt_views(n) -> str:
+    if not n:
+        return "—"
+    n = int(n)
     if n >= 1_000_000:
         return f"{n / 1_000_000:.1f}M"
     if n >= 1_000:
         return f"{n / 1_000:.0f}K"
-    return str(n) if n else "—"
+    return str(n)
 
 
-def _fmt_duration(secs: int) -> str:
+def _fmt_duration(secs) -> str:
     if not secs:
         return "—"
-    m, s = divmod(secs, 60)
+    m, s = divmod(int(secs), 60)
     return f"{m}:{s:02d}"
 
 
 def render_video_search():
     st.header("Video Search")
-    st.caption("Search 9:16 vertical videos from YouTube Shorts and TikTok simultaneously.")
+    st.caption("Search 9:16 vertical videos from YouTube Shorts by keyword.")
 
     keyword = st.text_input("Keyword / theme", placeholder="e.g. morning routine, gym motivation...")
     max_results = st.slider("Number of results", min_value=5, max_value=20, value=10, step=1)
@@ -30,7 +33,7 @@ def render_video_search():
         if not keyword.strip():
             st.error("Please enter a keyword.")
             return
-        with st.spinner("Searching YouTube Shorts and TikTok..."):
+        with st.spinner("Searching YouTube Shorts..."):
             results, errors = search_videos(keyword.strip(), max_results)
             for k in [k for k in st.session_state if k.startswith("sel_")]:
                 del st.session_state[k]
@@ -58,13 +61,19 @@ def render_video_search():
         for col, (idx, video) in zip(cols, enumerate(row_items, start=row_start)):
             with col:
                 if video["thumbnail"]:
-                    st.image(video["thumbnail"], use_container_width=True)
-                badge = "▶️ Shorts" if video["platform"] == "youtube_shorts" else "🎵 TikTok"
+                    st.markdown(
+                        f'<a href="{video["url"]}" target="_blank">'
+                        f'<img src="{video["thumbnail"]}" style="width:100%;border-radius:8px;"/>'
+                        f'</a>',
+                        unsafe_allow_html=True,
+                    )
+                badge = "▶️ YouTube Shorts"
                 title = video["title"][:55] + "…" if len(video["title"]) > 55 else video["title"]
                 st.markdown(
-                    f"**{title}**  \n"
+                    f'<a href="{video["url"]}" target="_blank" style="color:#e2e8f0;text-decoration:none;font-weight:600;">{title}</a>  \n'
                     f"👁 {_fmt_views(video['view_count'])}  ·  "
-                    f"⏱ {_fmt_duration(video['duration'])}  ·  {badge}"
+                    f"⏱ {_fmt_duration(video['duration'])}  ·  {badge}",
+                    unsafe_allow_html=True,
                 )
                 checked = st.checkbox("Select", key=f"sel_{idx}", value=selections.get(idx, False))
                 selections[idx] = checked
