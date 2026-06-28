@@ -4,6 +4,7 @@ from ui.tab_downloader import render_downloader
 from ui.tab_transcript import render_transcript
 from ui.tab_caption_remover import render_caption_remover
 from ui.tab_video_search import render_video_search
+from ui.tab_channel_ranking import render_channel_ranking
 
 st.set_page_config(page_title="Content Creator Tool", layout="wide", page_icon="🎬")
 
@@ -287,12 +288,13 @@ with btn_col:
         st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "✍️  Script Writer",
     "⬇️  Downloader",
     "📝  Transcript",
     "🎞️  Caption Remover",
     "🔎  Video Search",
+    "🏆  Channel Rankings",
 ])
 
 with tab1:
@@ -309,3 +311,6 @@ with tab4:
 
 with tab5:
     render_video_search()
+
+with tab6:
+    render_channel_ranking()
