@@ -3,7 +3,7 @@ GROQ_API_KEY = ""
 GEMINI_API_KEY = ""
 ANTHROPIC_API_KEY = ""
 OPENAI_API_KEY = ""
-YOUTUBE_API_KEY = ""               # get a free key at console.cloud.google.com
+YOUTUBE_API_KEY = ""
 ELEVENLABS_API_KEY = ""            # optional
 TTS_PROVIDER = "edge-tts"          # "edge-tts" or "elevenlabs"
 CAPTION_REMOVER_PROVIDER = "local" # "local" (NVIDIA GPU) or "replicate"
@@ -13,3 +13,18 @@ TRANSCRIPTAPI_KEY = ""
 
 SCRIPTS_DIR = "data/my_scripts"
 DOWNLOADS_DIR = "downloads"
+
+# Environment variables override the values above (used on hosted platforms).
+# Locally, values are read from this file via the ⚙️ Config tab.
+import os as _os, sys as _sys
+_m = _sys.modules[__name__]
+for _k in [
+    "LLM_PROVIDER", "GROQ_API_KEY", "GEMINI_API_KEY", "ANTHROPIC_API_KEY",
+    "OPENAI_API_KEY", "YOUTUBE_API_KEY", "ELEVENLABS_API_KEY", "TTS_PROVIDER",
+    "CAPTION_REMOVER_PROVIDER", "REPLICATE_API_KEY", "TRANSCRIPTAPI_KEY",
+    "SCRIPTS_DIR", "DOWNLOADS_DIR",
+]:
+    _v = _os.environ.get(_k)
+    if _v is not None:
+        setattr(_m, _k, _v)
+del _os, _sys, _m, _k, _v

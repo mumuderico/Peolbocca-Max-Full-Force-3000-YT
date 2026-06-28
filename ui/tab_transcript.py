@@ -1,4 +1,5 @@
 import streamlit as st
+import config
 from youtube_transcript_api import TranscriptsDisabled, NoTranscriptFound
 from modules.transcriber import (
     get_transcript,
@@ -6,71 +7,110 @@ from modules.transcriber import (
     SUPPORTED_LANGUAGES,
     extract_video_id,
 )
+from modules.script_generator import save_script, delete_script, list_scripts
+from ui.i18n import t
 
 
 def render_transcript():
-    st.header("YouTube Transcript + Translation")
+    st.header(t("tr_header"))
 
-    url = st.text_input("YouTube URL", placeholder="https://www.youtube.com/watch?v=...")
-    include_timestamps = st.checkbox("Include timestamps")
+    if not config.TRANSCRIPTAPI_KEY:
+        st.info(t("tr_tip"), icon="💡")
 
-    if st.button("Get Transcript", type="primary"):
+    url = st.text_input(t("tr_url_label"), placeholder=t("tr_url_placeholder"))
+    include_timestamps = st.checkbox(t("tr_timestamps"))
+
+    if st.button(t("tr_get_btn"), type="primary"):
         if not url.strip():
-            st.error("Please enter a YouTube URL.")
+            st.error(t("tr_enter_url"))
             return
 
-        try:
-            extract_video_id(url.strip())
-        except ValueError:
-            st.error("That doesn't look like a valid YouTube URL.")
-            return
-
-        with st.spinner("Fetching transcript..."):
+        if not config.TRANSCRIPTAPI_KEY:
             try:
-                transcript = get_transcript(url.strip(), include_timestamps=include_timestamps)
+                extract_video_id(url.strip())
+            except ValueError:
+                st.error(t("tr_invalid_url"))
+                return
+
+        with st.spinner(t("tr_fetching")):
+            try:
+                transcript = get_transcript(
+                    url.strip(),
+                    include_timestamps=include_timestamps,
+                    api_key=config.TRANSCRIPTAPI_KEY,
+                )
                 st.session_state["transcript"] = transcript
                 st.session_state["transcript_url"] = url.strip()
             except TranscriptsDisabled:
-                st.error("This video has captions disabled. Try a different video.")
+                st.error(t("tr_captions_disabled"))
                 return
             except NoTranscriptFound:
-                st.error("No transcript found for this video.")
+                st.error(t("tr_no_transcript"))
                 return
             except Exception as e:
-                st.error(f"Could not fetch transcript: {e}")
+                msg = str(e)
+                if "401" in msg or "403" in msg:
+                    st.error(t("tr_invalid_key"))
+                elif "402" in msg:
+                    st.error(t("tr_credits_exhausted"))
+                else:
+                    st.error(t("tr_fetch_error", error=e))
                 return
 
     if "transcript" in st.session_state:
-        st.text_area("Transcript", value=st.session_state["transcript"], height=350, key="transcript_display")
-        st.download_button(
-            "Download Transcript (.txt)",
-            data=st.session_state["transcript"],
-            file_name="transcript.txt",
-            mime="text/plain",
-        )
+        left_col, right_col = st.columns(2)
 
-        st.divider()
-        st.subheader("Translate")
-        target_lang_name = st.selectbox(
-            "Translate to",
-            options=[name for name in SUPPORTED_LANGUAGES if name != "English"],
-        )
-        if st.button("Translate"):
-            lang_code = SUPPORTED_LANGUAGES[target_lang_name]
-            with st.spinner(f"Translating to {target_lang_name}..."):
-                translated = translate_text(st.session_state["transcript"], lang_code)
-                st.session_state["translated"] = translated
+        LABEL = "font-size:0.8rem;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;margin-bottom:4px;"
 
-        if "translated" in st.session_state:
-            st.text_area(
-                "Translated Transcript",
-                value=st.session_state["translated"],
-                height=350,
-                key="translated_display",
+        with left_col:
+            st.markdown(f'<p style="{LABEL}color:#7c3aed;">{t("tr_transcript_label")}</p>', unsafe_allow_html=True)
+            st.text_area("", value=st.session_state["transcript"], height=400, key="transcript_display")
+
+            script_filename = "transcript_style.txt"
+            already_saved = script_filename in list_scripts(config.SCRIPTS_DIR)
+            use_as_script = st.toggle(
+                t("tr_use_as_style"),
+                value=already_saved,
+                key="transcript_as_script",
             )
+            if use_as_script and not already_saved:
+                save_script(script_filename, st.session_state["transcript"], config.SCRIPTS_DIR)
+                st.success(t("tr_saved_style"))
+            elif not use_as_script and already_saved:
+                delete_script(script_filename, config.SCRIPTS_DIR)
+                st.info(t("tr_removed_style"))
+
             st.download_button(
-                "Download Translation (.txt)",
-                data=st.session_state["translated"],
+                t("tr_download_transcript"),
+                data=st.session_state["transcript"],
+                file_name="transcript.txt",
+                mime="text/plain",
+                use_container_width=True,
+            )
+
+        with right_col:
+            st.markdown(f'<p style="{LABEL}color:#0ea5e9;">{t("tr_translation_label")}</p>', unsafe_allow_html=True)
+            lang_col, btn_col = st.columns([3, 1])
+            with lang_col:
+                target_lang_name = st.selectbox(t("tr_translate_to"), options=list(SUPPORTED_LANGUAGES.keys()), label_visibility="collapsed")
+            with btn_col:
+                st.markdown("<div style='padding-top:4px'>", unsafe_allow_html=True)
+                do_translate = st.button(t("tr_translate_btn"), use_container_width=True)
+                st.markdown("</div>", unsafe_allow_html=True)
+
+            if do_translate:
+                lang_code = SUPPORTED_LANGUAGES[target_lang_name]
+                with st.spinner(t("tr_translating", lang=target_lang_name)):
+                    translated = translate_text(st.session_state["transcript"], lang_code)
+                    st.session_state["translated"] = translated
+
+            translated_value = st.session_state.get("translated", "")
+            st.text_area("", value=translated_value, height=400, key="translated_display", placeholder=t("tr_translation_placeholder"))
+            st.download_button(
+                t("tr_download_translation"),
+                data=translated_value or " ",
                 file_name="translated_transcript.txt",
                 mime="text/plain",
+                use_container_width=True,
+                disabled=not translated_value,
             )

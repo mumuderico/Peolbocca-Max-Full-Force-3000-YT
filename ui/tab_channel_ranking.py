@@ -2,6 +2,7 @@ import time
 import streamlit as st
 import config
 from modules.channel_ranker import fetch_trending_channels
+from ui.i18n import t
 
 
 COUNTRIES = {
@@ -23,7 +24,7 @@ COUNTRIES = {
     "Venezuela": "VE", "Vietnam": "VN", "Zimbabwe": "ZW",
 }
 
-CACHE_TTL = 3600  # 1 hour
+CACHE_TTL = 3600
 
 
 def _fmt_number(n: int) -> str:
@@ -37,20 +38,20 @@ def _fmt_number(n: int) -> str:
 
 
 def render_channel_ranking():
-    st.header("Channel Rankings")
-    st.caption("Top channels dominating YouTube trending right now, by country.")
+    st.header(t("rk_header"))
+    st.caption(t("rk_caption"))
 
     if not config.YOUTUBE_API_KEY:
-        st.error("Add your YOUTUBE_API_KEY to config.py")
+        st.error(t("rk_add_key"))
         return
 
     col1, col2 = st.columns([2, 2])
     with col1:
         sorted_countries = sorted(COUNTRIES.keys())
         default_idx = sorted_countries.index("United States")
-        country_name = st.selectbox("Country", options=sorted_countries, index=default_idx)
+        country_name = st.selectbox(t("rk_country_label"), options=sorted_countries, index=default_idx)
     with col2:
-        metric = st.radio("Rank by", ["🔥 Trending Videos", "👁 Trending Views"], horizontal=True)
+        metric = st.radio(t("rk_rank_by"), [t("rk_trending_videos"), t("rk_trending_views")], horizontal=True)
 
     country_code = COUNTRIES[country_name]
     cache_key = f"ranking_{country_code}"
@@ -62,10 +63,10 @@ def render_channel_ranking():
 
     if is_fresh and cache_key in st.session_state:
         age_min = int((now - cached_ts) / 60)
-        st.caption(f"Last updated {age_min} min ago · click Load Rankings to refresh")
+        st.caption(t("rk_last_updated", min=age_min))
 
-    if st.button("Load Rankings", type="primary"):
-        with st.spinner(f"Fetching trending data for {country_name}..."):
+    if st.button(t("rk_load_btn"), type="primary"):
+        with st.spinner(t("rk_fetching", country=country_name)):
             try:
                 results = fetch_trending_channels(country_code, config.YOUTUBE_API_KEY)
                 st.session_state[cache_key] = results
@@ -73,9 +74,9 @@ def render_channel_ranking():
             except Exception as e:
                 msg = str(e)
                 if "invalid" in msg.lower() or "400" in msg:
-                    st.error("Invalid YouTube API key. Check YOUTUBE_API_KEY in config.py.")
+                    st.error(t("rk_invalid_key"))
                 elif "quota" in msg.lower() or "403" in msg:
-                    st.error("YouTube API quota exceeded. Try again tomorrow.")
+                    st.error(t("rk_quota_exceeded"))
                 else:
                     st.error(str(e))
                 return
@@ -84,10 +85,10 @@ def render_channel_ranking():
         return
     results = st.session_state[cache_key]
     if not results:
-        st.info("No trending data available for this country. Try another.")
+        st.info(t("rk_no_data"))
         return
 
-    sort_key = "trending_count" if "Videos" in metric else "trending_views"
+    sort_key = "trending_count" if t("rk_trending_videos") in metric else "trending_views"
     sorted_results = sorted(results, key=lambda x: x[sort_key], reverse=True)
 
     st.divider()

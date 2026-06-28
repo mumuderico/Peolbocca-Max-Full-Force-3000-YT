@@ -4,9 +4,11 @@ from ui.tab_downloader import render_downloader
 from ui.tab_transcript import render_transcript
 from ui.tab_caption_remover import render_caption_remover
 from ui.tab_video_search import render_video_search
+from ui.tab_config import render_config
+from ui.i18n import t
 from ui.tab_channel_ranking import render_channel_ranking
 
-st.set_page_config(page_title="Content Creator Tool", layout="wide", page_icon="🎬")
+st.set_page_config(page_title="Peolbocca Max Full Force 3000 YT", layout="wide", page_icon="🎬")
 
 st.markdown("""
 <style>
@@ -279,22 +281,38 @@ audio {
 </style>
 """, unsafe_allow_html=True)
 
-title_col, btn_col = st.columns([8, 1])
+LANGUAGES = {
+    "🇺🇸 English": "English",
+    "🇧🇷 Portuguese": "Portuguese",
+}
+
+title_col, lang_col, btn_col = st.columns([6, 2, 1])
 with title_col:
-    st.title("🎬 Content Creator Tool")
+    st.title(f"🎬 {t('app_title')}")
+with lang_col:
+    st.markdown("<div style='padding-top:1.4rem'>", unsafe_allow_html=True)
+    selected_lang_label = st.selectbox(
+        "Language",
+        list(LANGUAGES.keys()),
+        label_visibility="collapsed",
+        key="app_language_label",
+    )
+    st.session_state["app_language"] = LANGUAGES[selected_lang_label]
+    st.markdown("</div>", unsafe_allow_html=True)
 with btn_col:
     st.markdown("<div style='padding-top:1.6rem'>", unsafe_allow_html=True)
     if st.button("🔄 Rerun", help="Refresh the app"):
         st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-    "✍️  Script Writer",
-    "⬇️  Downloader",
-    "📝  Transcript",
-    "🎞️  Caption Remover",
-    "🔎  Video Search",
-    "🏆  Channel Rankings",
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+    f"✍️  {t('tab_script_writer')}",
+    f"⬇️  {t('tab_downloader')}",
+    f"📝  {t('tab_transcript')}",
+    f"🎞️  {t('tab_caption_remover')}",
+    f"🔎  {t('tab_video_search')}",
+    f"🏆  {t('tab_channel_rankings')}",
+    f"⚙️  {t('tab_config')}",
 ])
 
 with tab1:
@@ -314,3 +332,6 @@ with tab5:
 
 with tab6:
     render_channel_ranking()
+
+with tab7:
+    render_config()
