@@ -1,11 +1,10 @@
 import os
 import subprocess
-import cv2
-import numpy as np
-import easyocr
 
 
-def detect_text_mask(frame: np.ndarray, reader: easyocr.Reader) -> np.ndarray:
+def detect_text_mask(frame, reader) -> "np.ndarray":
+    import numpy as np
+    import cv2
     results = reader.readtext(frame)
     mask = np.zeros(frame.shape[:2], dtype=np.uint8)
     for (bbox, text, prob) in results:
@@ -22,7 +21,8 @@ def detect_text_mask(frame: np.ndarray, reader: easyocr.Reader) -> np.ndarray:
     return mask
 
 
-def inpaint_frame(frame: np.ndarray, mask: np.ndarray) -> np.ndarray:
+def inpaint_frame(frame, mask):
+    import cv2
     if mask.max() == 0:
         return frame
     return cv2.inpaint(frame, mask, inpaintRadius=5, flags=cv2.INPAINT_TELEA)
@@ -35,6 +35,10 @@ def remove_captions_local(
     caption_zone: float = 0.35,
     progress_callback=None,
 ) -> str:
+    import cv2
+    import numpy as np
+    import easyocr
+
     reader = easyocr.Reader(["en"], gpu=True)
 
     cap = cv2.VideoCapture(input_path)
@@ -43,7 +47,6 @@ def remove_captions_local(
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    # Only scan the bottom portion of the frame where captions live
     roi_top = int(height * (1.0 - caption_zone))
 
     temp_path = output_path + ".noaudio.mp4"
