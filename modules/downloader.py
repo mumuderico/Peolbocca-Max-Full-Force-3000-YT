@@ -4,9 +4,9 @@ import yt_dlp
 
 
 QUALITY_FORMATS = {
-    "best": "best[ext=mp4]/best",
-    "medium": "best[height<=720][ext=mp4]/best[height<=720]/best",
-    "low": "best[height<=480][ext=mp4]/best[height<=480]/best",
+    "best": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
+    "medium": "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]/best",
+    "low": "bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best",
 }
 
 
@@ -28,7 +28,7 @@ def download_media(
     if os.path.isdir(_win_ffmpeg):
         ydl_opts["ffmpeg_location"] = _win_ffmpeg
 
-    ydl_opts["extractor_args"] = {"youtube": {"player_client": ["ios"]}}
+    ydl_opts["extractor_args"] = {"youtube": {"player_client": ["tv_embedded"]}}
 
     _tmp_cookies = None
     cookies_content = os.environ.get("YOUTUBE_COOKIES")
