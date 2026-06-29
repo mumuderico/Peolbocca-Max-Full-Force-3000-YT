@@ -1,3 +1,4 @@
+import time
 import streamlit as st
 import streamlit.components.v1 as components
 import config
@@ -116,29 +117,30 @@ def render_config():
 
     save_col, msg_col = st.columns([2, 3])
     with save_col:
-        if st.button(t("cfg_save_btn"), type="primary"):
-            keys = {
-                "LLM_PROVIDER": "groq",
-                "GROQ_API_KEY": groq_key,
-                "TTS_PROVIDER": tts_provider,
-                "ELEVENLABS_API_KEY": elevenlabs_key,
-                "YOUTUBE_API_KEY": youtube_key,
-                "TRANSCRIPTAPI_KEY": transcript_key,
-                "CAPTION_REMOVER_PROVIDER": caption_provider,
-                "REPLICATE_API_KEY": replicate_key,
-                "SCRIPT_PRESET": st.session_state.get("gen_style_preset", "Default"),
-            }
-            save_profile(active, keys)
-            st.session_state["user_keys"] = keys
-            st.session_state["cfg_saved_ok"] = True
+        save_clicked = st.button(t("cfg_save_btn"), type="primary")
     with msg_col:
-        st.markdown("<div style='padding-top:0.55rem'>", unsafe_allow_html=True)
-        if st.session_state.get("cfg_saved_ok"):
-            st.markdown(
-                "<span style='color:#22c55e;font-weight:600;font-size:0.9rem'>✓ Config saved</span>",
-                unsafe_allow_html=True,
-            )
-        st.markdown("</div>", unsafe_allow_html=True)
+        msg_placeholder = st.empty()
+
+    if save_clicked:
+        keys = {
+            "LLM_PROVIDER": "groq",
+            "GROQ_API_KEY": groq_key,
+            "TTS_PROVIDER": tts_provider,
+            "ELEVENLABS_API_KEY": elevenlabs_key,
+            "YOUTUBE_API_KEY": youtube_key,
+            "TRANSCRIPTAPI_KEY": transcript_key,
+            "CAPTION_REMOVER_PROVIDER": caption_provider,
+            "REPLICATE_API_KEY": replicate_key,
+            "SCRIPT_PRESET": st.session_state.get("gen_style_preset", "Default"),
+        }
+        save_profile(active, keys)
+        st.session_state["user_keys"] = keys
+        msg_placeholder.markdown(
+            "<span style='color:#22c55e;font-weight:600;font-size:0.9rem;padding-top:0.55rem;display:block'>✓ Config saved</span>",
+            unsafe_allow_html=True,
+        )
+        time.sleep(1)
+        msg_placeholder.empty()
 
     components.html("""
     <script>
