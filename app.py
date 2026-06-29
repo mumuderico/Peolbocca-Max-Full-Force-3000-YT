@@ -1,4 +1,11 @@
+import os
 import streamlit as st
+
+# Expose Streamlit secrets as env vars so non-UI modules can read them
+for _k, _v in st.secrets.items():
+    if isinstance(_v, str):
+        os.environ.setdefault(_k, _v)
+
 from ui.tab_script_writer import render_script_writer
 from ui.tab_downloader import render_downloader
 from ui.tab_transcript import render_transcript
@@ -309,7 +316,7 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     f"✍️  {t('tab_script_writer')}",
     f"⬇️  {t('tab_downloader')}",
     f"📝  {t('tab_transcript')}",
-    f"🎞️  {t('tab_caption_remover')}",
+    f"🎞️  {t('tab_not_working')}",
     f"🔎  {t('tab_video_search')}",
     f"🏆  {t('tab_channel_rankings')}",
     f"⚙️  {t('tab_config')}",
