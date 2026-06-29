@@ -8,28 +8,6 @@ QUALITY_FORMATS = {
     "low": "bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]",
 }
 
-_QUALITY_RES = {"best": None, "medium": "720p", "low": "480p"}
-
-
-def _download_with_pytubefix(url: str, output_dir: str, media_type: str, quality: str) -> str:
-    from pytubefix import YouTube
-    yt = YouTube(url, use_oauth=False, allow_oauth_cache=False)
-
-    if media_type == "audio":
-        stream = yt.streams.get_audio_only()
-        path = stream.download(output_path=output_dir)
-        base = os.path.splitext(path)[0] + ".mp3"
-        os.rename(path, base)
-        return base
-
-    res = _QUALITY_RES.get(quality)
-    stream = None
-    if res:
-        stream = yt.streams.filter(res=res, file_extension="mp4", progressive=True).first()
-    if stream is None:
-        stream = yt.streams.get_highest_resolution()
-    return stream.download(output_path=output_dir)
-
 
 def download_media(
     url: str,
@@ -39,17 +17,12 @@ def download_media(
 ) -> str:
     os.makedirs(output_dir, exist_ok=True)
 
-    try:
-        return _download_with_pytubefix(url, output_dir, media_type, quality)
-    except Exception:
-        pass
-
     _win_ffmpeg = r"C:\Program Files\FFmpeg\bin"
     ydl_opts = {
         "outtmpl": os.path.join(output_dir, "%(title)s.%(ext)s"),
         "format": QUALITY_FORMATS.get(quality, QUALITY_FORMATS["best"]),
-        "quiet": True,
-        "no_warnings": True,
+        "quiet": False,
+        "verbose": True,
     }
     if os.path.isdir(_win_ffmpeg):
         ydl_opts["ffmpeg_location"] = _win_ffmpeg
@@ -57,6 +30,9 @@ def download_media(
     cookies_file = os.environ.get("YOUTUBE_COOKIES_FILE")
     if cookies_file and os.path.exists(cookies_file):
         ydl_opts["cookiefile"] = cookies_file
+        print(f"[downloader] using cookies file: {cookies_file}")
+    else:
+        print(f"[downloader] no cookies file found (YOUTUBE_COOKIES_FILE={cookies_file!r})")
 
     if media_type == "audio":
         ydl_opts["format"] = "bestaudio/best"
