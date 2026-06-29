@@ -1,5 +1,6 @@
 import asyncio
 import os
+import threading
 import streamlit as st
 
 
@@ -27,10 +28,14 @@ def _profile_id() -> str:
     return st.session_state.get("active_profile", "")
 
 
+def _sync(fn, *args):
+    threading.Thread(target=fn, args=args, daemon=True).start()
+
+
 def create_preset(name: str, scripts_dir: str) -> None:
     os.makedirs(os.path.join(scripts_dir, name), exist_ok=True)
     from modules.cloud_store import create_preset_in_cloud
-    create_preset_in_cloud(_profile_id(), name)
+    _sync(create_preset_in_cloud, _profile_id(), name)
 
 
 def delete_preset(name: str, scripts_dir: str) -> None:
@@ -39,7 +44,7 @@ def delete_preset(name: str, scripts_dir: str) -> None:
     if os.path.exists(path):
         shutil.rmtree(path)
     from modules.cloud_store import delete_preset_from_cloud
-    delete_preset_from_cloud(_profile_id(), name)
+    _sync(delete_preset_from_cloud, _profile_id(), name)
 
 
 def list_scripts(scripts_dir: str, preset: str = "Default") -> list[str]:
@@ -58,7 +63,7 @@ def save_script(filename: str, content: str, scripts_dir: str, preset: str = "De
     with open(os.path.join(target, filename), "w", encoding="utf-8") as f:
         f.write(content)
     from modules.cloud_store import save_script_to_cloud
-    save_script_to_cloud(_profile_id(), preset, filename, content)
+    _sync(save_script_to_cloud, _profile_id(), preset, filename, content)
 
 
 def delete_script(filename: str, scripts_dir: str, preset: str = "Default") -> None:
@@ -66,7 +71,7 @@ def delete_script(filename: str, scripts_dir: str, preset: str = "Default") -> N
     if os.path.exists(path):
         os.remove(path)
     from modules.cloud_store import delete_script_from_cloud
-    delete_script_from_cloud(_profile_id(), preset, filename)
+    _sync(delete_script_from_cloud, _profile_id(), preset, filename)
 
 
 def load_user_scripts(scripts_dir: str, preset: str = "Default") -> list[str]:

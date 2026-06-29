@@ -5,12 +5,15 @@ falling back to local keys.json for local development.
 import os
 
 _col = None
+_col_unavailable = False  # set True after first failed attempt to avoid retrying
 
 
 def _get_col():
-    global _col
+    global _col, _col_unavailable
     if _col is not None:
         return _col
+    if _col_unavailable:
+        return None
     uri = os.environ.get("MONGODB_URI", "")
     if not uri:
         try:
@@ -19,15 +22,17 @@ def _get_col():
         except Exception:
             pass
     if not uri:
+        _col_unavailable = True
         return None
     try:
         from pymongo import MongoClient
-        client = MongoClient(uri, serverSelectionTimeoutMS=5000)
-        client.admin.command("ping")  # verify connection before storing
+        client = MongoClient(uri, serverSelectionTimeoutMS=3000)
+        client.admin.command("ping")
         _col = client["streamlit_app"]["users"]
         return _col
     except Exception:
-        return None  # fall back to local storage silently
+        _col_unavailable = True
+        return None
 
 
 # ── Profile (API keys) ────────────────────────────────────────────────────────
