@@ -1,33 +1,4 @@
-import os
-import tempfile
 import streamlit as st
-
-# Write YouTube cookies to a temp file once at startup
-try:
-    _cookies = st.secrets["YOUTUBE_COOKIES"]
-except (KeyError, FileNotFoundError):
-    _cookies = ""
-
-def _normalize_cookies(content: str) -> str:
-    """Ensure Netscape cookie fields are tab-separated (not space-separated)."""
-    lines = []
-    for line in content.splitlines():
-        stripped = line.strip()
-        if not stripped or stripped.startswith("#"):
-            lines.append(line)
-            continue
-        import re
-        parts = re.split(r"[ \t]+", stripped, maxsplit=6)
-        lines.append("\t".join(parts) if len(parts) >= 6 else line)
-    return "\n".join(lines)
-
-if _cookies and not os.environ.get("YOUTUBE_COOKIES_FILE"):
-    _f = tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False)
-    _f.write(_normalize_cookies(_cookies))
-    _f.close()
-    os.environ["YOUTUBE_COOKIES_FILE"] = _f.name
-    print(f"[startup] cookies file written: {_f.name}")
-
 from ui.tab_script_writer import render_script_writer
 from ui.tab_downloader import render_downloader
 from ui.tab_transcript import render_transcript
@@ -338,7 +309,7 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     f"✍️  {t('tab_script_writer')}",
     f"⬇️  {t('tab_downloader')}",
     f"📝  {t('tab_transcript')}",
-    f"🎞️  {t('tab_not_working')}",
+    f"🎞️  {t('tab_caption_remover')}",
     f"🔎  {t('tab_video_search')}",
     f"🏆  {t('tab_channel_rankings')}",
     f"⚙️  {t('tab_config')}",
