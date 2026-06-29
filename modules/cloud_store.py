@@ -20,9 +20,14 @@ def _get_col():
             pass
     if not uri:
         return None
-    from pymongo import MongoClient
-    _col = MongoClient(uri, serverSelectionTimeoutMS=5000)["streamlit_app"]["users"]
-    return _col
+    try:
+        from pymongo import MongoClient
+        client = MongoClient(uri, serverSelectionTimeoutMS=5000)
+        client.admin.command("ping")  # verify connection before storing
+        _col = client["streamlit_app"]["users"]
+        return _col
+    except Exception:
+        return None  # fall back to local storage silently
 
 
 # ── Profile (API keys) ────────────────────────────────────────────────────────
