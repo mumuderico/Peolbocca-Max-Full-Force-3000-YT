@@ -14,8 +14,6 @@ from modules.script_generator import (
     load_shared_scripts,
     load_user_scripts,
     save_script,
-    save_shared_script,
-    delete_shared_script,
 )
 from ui.i18n import t
 from ui.user_cfg import get_key, get_scripts_dir
@@ -267,28 +265,10 @@ def render_script_writer():
         shared_presets = list_shared_presets(shared_dir)
         if shared_presets:
             active_shared = st.selectbox("Shared preset", shared_presets, key="lib_shared_preset", label_visibility="collapsed")
-
-            shared_up = st.file_uploader(
-                "Upload to shared",
-                type=["txt"],
-                accept_multiple_files=True,
-                key=f"shared_uploader_{active_shared}",
-                label_visibility="collapsed",
-            )
-            if shared_up:
-                for f in shared_up:
-                    save_shared_script(f.name, f.read().decode("utf-8"), shared_dir, active_shared)
-                st.success(f"Saved {len(shared_up)} file(s) to 🌐 {active_shared}")
-                st.rerun()
-
             shared_saved = list_shared_scripts(shared_dir, active_shared)
             with st.expander(f"Scripts ({len(shared_saved)})"):
                 if shared_saved:
                     for sname in shared_saved:
-                        sc1, sc2 = st.columns([4, 1])
-                        sc1.caption(f"📄 {sname}")
-                        if sc2.button("✕", key=f"del_shared_{active_shared}_{sname}", help=f"Delete {sname}"):
-                            delete_shared_script(sname, shared_dir, active_shared)
-                            st.rerun()
+                        st.caption(f"📄 {sname}")
                 else:
                     st.caption("No scripts yet.")
