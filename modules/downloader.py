@@ -28,7 +28,7 @@ def download_media(
     if os.path.isdir(_win_ffmpeg):
         ydl_opts["ffmpeg_location"] = _win_ffmpeg
 
-    ydl_opts["extractor_args"] = {"youtube": {"player_client": ["tv_embedded"]}}
+    ydl_opts["extractor_args"] = {"youtube": {"player_client": ["android_vr"]}}
 
     _tmp_cookies = None
     cookies_content = os.environ.get("YOUTUBE_COOKIES")
