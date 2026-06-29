@@ -181,18 +181,67 @@ def render_script_writer():
         </div>
         """, unsafe_allow_html=True)
 
-        presets = list_presets(scripts_dir)
+        # personal named presets only — no "Default"
+        presets = [p for p in list_presets(scripts_dir) if p != "Default"]
 
-        p_col, d_col = st.columns([4, 1])
-        with p_col:
-            active_preset = st.selectbox(t("sw_preset_name_label"), presets, key="lib_active_preset", label_visibility="collapsed")
-        with d_col:
-            st.markdown("<div style='padding-top:0.3rem'>", unsafe_allow_html=True)
-            if active_preset != "Default":
+        if presets:
+            p_col, d_col = st.columns([4, 1])
+            with p_col:
+                active_preset = st.selectbox(t("sw_preset_name_label"), presets, key="lib_active_preset", label_visibility="collapsed")
+            with d_col:
+                st.markdown("<div style='padding-top:0.3rem'>", unsafe_allow_html=True)
                 if st.button("🗑️", key="del_preset_btn", help=t("sw_delete_preset_help", name=active_preset)):
                     delete_preset(active_preset, scripts_dir)
                     st.rerun()
-            st.markdown("</div>", unsafe_allow_html=True)
+                st.markdown("</div>", unsafe_allow_html=True)
+
+            st.markdown("<div style='height: 4px'></div>", unsafe_allow_html=True)
+
+            uploaded_files = st.file_uploader(
+                "Upload .txt files",
+                type=["txt"],
+                accept_multiple_files=True,
+                key=f"uploader_{active_preset}",
+                label_visibility="collapsed",
+            )
+            if uploaded_files:
+                for f in uploaded_files:
+                    save_script(f.name, f.read().decode("utf-8"), scripts_dir, active_preset)
+                st.success(t("sw_saved_scripts", n=len(uploaded_files), preset=active_preset))
+                st.rerun()
+
+            st.markdown("<div style='height: 4px'></div>", unsafe_allow_html=True)
+
+            saved = list_scripts(scripts_dir, active_preset)
+            with st.expander(t("sw_scripts_label", n=len(saved))):
+                if saved:
+                    for name in saved:
+                        c1, c2 = st.columns([4, 1])
+                        c1.caption(f"📄 {name}")
+                        if c2.button("✕", key=f"del_{active_preset}_{name}", help=f"Delete {name}"):
+                            delete_script(name, scripts_dir, active_preset)
+                            st.rerun()
+                else:
+                    st.caption(t("sw_no_scripts"))
+
+            with st.expander(t("sw_paste_manually")):
+                manual_name = st.text_input(t("sw_name_label"), placeholder=t("sw_name_placeholder"), key=f"manual_name_{active_preset}")
+                manual_text = st.text_area(t("sw_script_label"), height=140, key=f"manual_text_{active_preset}")
+                if st.button(t("sw_save_btn"), key=f"save_manual_{active_preset}"):
+                    name = manual_name.strip()
+                    text = manual_text.strip()
+                    if not name:
+                        st.error(t("sw_enter_name"))
+                    elif not name.endswith(".txt"):
+                        st.error(t("sw_name_must_end_txt"))
+                    elif not text:
+                        st.error(t("sw_paste_first"))
+                    else:
+                        save_script(name, text, scripts_dir, active_preset)
+                        st.success(t("sw_saved_to_preset", name=name, preset=active_preset))
+                        st.rerun()
+        else:
+            st.caption("Create a preset below to start your style library.")
 
         with st.expander(t("sw_new_preset")):
             new_name = st.text_input(t("sw_preset_name_label"), placeholder=t("sw_preset_placeholder"), key="new_preset_name")
@@ -206,69 +255,3 @@ def render_script_writer():
                     create_preset(name, scripts_dir)
                     st.success(t("sw_created_preset", name=name))
                     st.rerun()
-
-        st.markdown("<div style='height: 4px'></div>", unsafe_allow_html=True)
-
-        uploaded_files = st.file_uploader(
-            "Upload .txt files",
-            type=["txt"],
-            accept_multiple_files=True,
-            key=f"uploader_{active_preset}",
-            label_visibility="collapsed",
-        )
-        if uploaded_files:
-            for f in uploaded_files:
-                save_script(f.name, f.read().decode("utf-8"), scripts_dir, active_preset)
-            st.success(t("sw_saved_scripts", n=len(uploaded_files), preset=active_preset))
-            st.rerun()
-
-        st.markdown("<div style='height: 4px'></div>", unsafe_allow_html=True)
-
-        saved = list_scripts(scripts_dir, active_preset)
-        with st.expander(t("sw_scripts_label", n=len(saved))):
-            if saved:
-                for name in saved:
-                    c1, c2 = st.columns([4, 1])
-                    c1.caption(f"📄 {name}")
-                    if c2.button("✕", key=f"del_{active_preset}_{name}", help=f"Delete {name}"):
-                        delete_script(name, scripts_dir, active_preset)
-                        st.rerun()
-            else:
-                st.caption(t("sw_no_scripts"))
-
-        with st.expander(t("sw_paste_manually")):
-            manual_name = st.text_input(t("sw_name_label"), placeholder=t("sw_name_placeholder"), key=f"manual_name_{active_preset}")
-            manual_text = st.text_area(t("sw_script_label"), height=140, key=f"manual_text_{active_preset}")
-            if st.button(t("sw_save_btn"), key=f"save_manual_{active_preset}"):
-                name = manual_name.strip()
-                text = manual_text.strip()
-                if not name:
-                    st.error(t("sw_enter_name"))
-                elif not name.endswith(".txt"):
-                    st.error(t("sw_name_must_end_txt"))
-                elif not text:
-                    st.error(t("sw_paste_first"))
-                else:
-                    save_script(name, text, scripts_dir, active_preset)
-                    st.success(t("sw_saved_to_preset", name=name, preset=active_preset))
-                    st.rerun()
-
-        # ── Shared Library ────────────────────────────────────────────
-        st.divider()
-        st.markdown("""
-        <div style="margin-bottom:0.5rem;">
-            <span style="font-size:0.85rem;font-weight:700;color:#e2e8f0;">🌐 Shared Library</span><br>
-            <span style="font-size:0.72rem;color:#64748b;">Available to all users</span>
-        </div>
-        """, unsafe_allow_html=True)
-
-        shared_presets = list_shared_presets(shared_dir)
-        if shared_presets:
-            active_shared = st.selectbox("Shared preset", shared_presets, key="lib_shared_preset", label_visibility="collapsed")
-            shared_saved = list_shared_scripts(shared_dir, active_shared)
-            with st.expander(f"Scripts ({len(shared_saved)})"):
-                if shared_saved:
-                    for sname in shared_saved:
-                        st.caption(f"📄 {sname}")
-                else:
-                    st.caption("No scripts yet.")
