@@ -1,5 +1,6 @@
 import asyncio
 import os
+import streamlit as st
 
 
 PLATFORM_INSTRUCTIONS = {
@@ -22,8 +23,14 @@ def list_presets(scripts_dir: str) -> list[str]:
     return presets
 
 
+def _profile_id() -> str:
+    return st.session_state.get("active_profile", "")
+
+
 def create_preset(name: str, scripts_dir: str) -> None:
     os.makedirs(os.path.join(scripts_dir, name), exist_ok=True)
+    from modules.cloud_store import create_preset_in_cloud
+    create_preset_in_cloud(_profile_id(), name)
 
 
 def delete_preset(name: str, scripts_dir: str) -> None:
@@ -31,6 +38,8 @@ def delete_preset(name: str, scripts_dir: str) -> None:
     path = os.path.join(scripts_dir, name)
     if os.path.exists(path):
         shutil.rmtree(path)
+    from modules.cloud_store import delete_preset_from_cloud
+    delete_preset_from_cloud(_profile_id(), name)
 
 
 def list_scripts(scripts_dir: str, preset: str = "Default") -> list[str]:
@@ -48,12 +57,16 @@ def save_script(filename: str, content: str, scripts_dir: str, preset: str = "De
     os.makedirs(target, exist_ok=True)
     with open(os.path.join(target, filename), "w", encoding="utf-8") as f:
         f.write(content)
+    from modules.cloud_store import save_script_to_cloud
+    save_script_to_cloud(_profile_id(), preset, filename, content)
 
 
 def delete_script(filename: str, scripts_dir: str, preset: str = "Default") -> None:
     path = os.path.join(_preset_dir(scripts_dir, preset), filename)
     if os.path.exists(path):
         os.remove(path)
+    from modules.cloud_store import delete_script_from_cloud
+    delete_script_from_cloud(_profile_id(), preset, filename)
 
 
 def load_user_scripts(scripts_dir: str, preset: str = "Default") -> list[str]:

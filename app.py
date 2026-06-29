@@ -309,12 +309,15 @@ with btn_col:
 import uuid as _uuid
 if "active_profile" not in st.session_state:
     from modules.user_store import load_profile as _load_profile
+    from modules.cloud_store import restore_scripts as _restore_scripts
+    import config as _cfg
     _param = st.query_params.get("user", "")
     if not _param:
         _param = "u_" + _uuid.uuid4().hex[:12]
         st.query_params["user"] = _param
     st.session_state["user_keys"] = _load_profile(_param)
     st.session_state["active_profile"] = _param
+    _restore_scripts(_param, _cfg.SCRIPTS_DIR)
 
 tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     f"✍️  {t('tab_script_writer')}",

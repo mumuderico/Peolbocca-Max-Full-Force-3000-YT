@@ -29,11 +29,10 @@ def list_profiles() -> list[str]:
 
 
 def load_profile(name: str) -> dict:
-    return _load_data().get("profiles", {}).get(name, {})
+    from modules.cloud_store import load_profile as _cloud_load
+    return _cloud_load(name)
 
 
 def save_profile(name: str, keys: dict) -> None:
-    data = _load_data()
-    data["profiles"][name] = keys
-    with open(_KEYS_PATH, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
+    from modules.cloud_store import save_profile as _cloud_save
+    _cloud_save(name, keys)
