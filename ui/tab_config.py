@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import config
 from modules.user_store import list_profiles, load_profile, save_profile
 from ui.user_cfg import get_key
@@ -138,3 +139,23 @@ def render_config():
                 unsafe_allow_html=True,
             )
         st.markdown("</div>", unsafe_allow_html=True)
+
+    components.html("""
+    <script>
+    (function() {
+        function patch() {
+            try {
+                var doc = window.parent.document;
+                doc.querySelectorAll('input[type="password"]').forEach(function(el) {
+                    el.setAttribute('autocomplete', 'new-password');
+                    el.setAttribute('data-lpignore', 'true');
+                    el.setAttribute('data-form-type', 'other');
+                });
+            } catch(e) {}
+        }
+        patch();
+        setTimeout(patch, 300);
+        setTimeout(patch, 1000);
+    })();
+    </script>
+    """, height=0)

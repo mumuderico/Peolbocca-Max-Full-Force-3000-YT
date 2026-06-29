@@ -279,20 +279,6 @@ audio {
 ::-webkit-scrollbar-thumb { background: #4c1d95; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #7c3aed; }
 </style>
-<script>
-(function() {
-    function patchPasswords() {
-        document.querySelectorAll('input[type="password"]').forEach(function(el) {
-            el.setAttribute('autocomplete', 'new-password');
-            el.setAttribute('data-lpignore', 'true');
-            el.setAttribute('data-form-type', 'other');
-        });
-    }
-    var observer = new MutationObserver(patchPasswords);
-    observer.observe(document.body, { childList: true, subtree: true });
-    patchPasswords();
-})();
-</script>
 """, unsafe_allow_html=True)
 
 LANGUAGES = {
