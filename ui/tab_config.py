@@ -1,6 +1,5 @@
 import time
 import streamlit as st
-import streamlit.components.v1 as components
 import config
 from modules.user_store import save_profile
 from ui.user_cfg import get_key
@@ -19,7 +18,7 @@ def render_config():
     # ── API key inputs ────────────────────────────────────────────
     st.subheader(t("cfg_script_writer"))
     st.markdown(_link(t("cfg_groq_link"), "https://console.groq.com/keys"), unsafe_allow_html=True)
-    groq_key = st.text_input(t("cfg_groq_key"), value=get_key("GROQ_API_KEY"), type="password", key="cfg_groq")
+    groq_key = st.text_input(t("cfg_groq_key"), value=get_key("GROQ_API_KEY"), type="default", key="cfg_groq")
 
     st.divider()
 
@@ -34,7 +33,7 @@ def render_config():
     elevenlabs_key = st.text_input(
         t("cfg_elevenlabs_key"),
         value=get_key("ELEVENLABS_API_KEY"),
-        type="password",
+        type="default",
         key="cfg_elevenlabs",
         help="Only needed when TTS Provider is set to elevenlabs",
     )
@@ -43,13 +42,13 @@ def render_config():
 
     st.subheader(t("cfg_youtube"))
     st.markdown(_link(t("cfg_youtube_link"), "https://console.cloud.google.com/apis/library/youtube.googleapis.com"), unsafe_allow_html=True)
-    youtube_key = st.text_input(t("cfg_youtube_key"), value=get_key("YOUTUBE_API_KEY"), type="password", key="cfg_youtube")
+    youtube_key = st.text_input(t("cfg_youtube_key"), value=get_key("YOUTUBE_API_KEY"), type="default", key="cfg_youtube")
 
     st.divider()
 
     st.subheader(t("cfg_transcript"))
     st.markdown(_link(t("cfg_transcript_link"), "https://transcriptapi.com"), unsafe_allow_html=True)
-    transcript_key = st.text_input(t("cfg_transcript_key"), value=get_key("TRANSCRIPTAPI_KEY"), type="password", key="cfg_transcript")
+    transcript_key = st.text_input(t("cfg_transcript_key"), value=get_key("TRANSCRIPTAPI_KEY"), type="default", key="cfg_transcript")
 
     st.divider()
 
@@ -65,7 +64,7 @@ def render_config():
     replicate_key = st.text_input(
         t("cfg_replicate_key"),
         value=get_key("REPLICATE_API_KEY"),
-        type="password",
+        type="default",
         key="cfg_replicate",
         help="Only needed when Caption Remover Provider is set to replicate",
     )
@@ -99,22 +98,3 @@ def render_config():
         time.sleep(1)
         msg_placeholder.empty()
 
-    components.html("""
-    <script>
-    (function() {
-        function patch() {
-            try {
-                var doc = window.parent.document;
-                doc.querySelectorAll('input[type="password"]').forEach(function(el) {
-                    el.setAttribute('autocomplete', 'new-password');
-                    el.setAttribute('data-lpignore', 'true');
-                    el.setAttribute('data-form-type', 'other');
-                });
-            } catch(e) {}
-        }
-        patch();
-        setTimeout(patch, 300);
-        setTimeout(patch, 1000);
-    })();
-    </script>
-    """, height=0)
