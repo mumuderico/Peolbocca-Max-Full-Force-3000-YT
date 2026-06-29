@@ -8,9 +8,22 @@ try:
 except (KeyError, FileNotFoundError):
     _cookies = ""
 
+def _normalize_cookies(content: str) -> str:
+    """Ensure Netscape cookie fields are tab-separated (not space-separated)."""
+    lines = []
+    for line in content.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            lines.append(line)
+            continue
+        import re
+        parts = re.split(r"[ \t]+", stripped, maxsplit=6)
+        lines.append("\t".join(parts) if len(parts) >= 6 else line)
+    return "\n".join(lines)
+
 if _cookies and not os.environ.get("YOUTUBE_COOKIES_FILE"):
     _f = tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False)
-    _f.write(_cookies)
+    _f.write(_normalize_cookies(_cookies))
     _f.close()
     os.environ["YOUTUBE_COOKIES_FILE"] = _f.name
     print(f"[startup] cookies file written: {_f.name}")
