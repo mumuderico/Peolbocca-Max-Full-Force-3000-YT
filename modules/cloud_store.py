@@ -61,13 +61,22 @@ def save_profile(profile_id: str, keys: dict) -> None:
 
 # ── Script files ──────────────────────────────────────────────────────────────
 
+def _get_preset_scripts(col, profile_id: str, preset: str) -> dict:
+    doc = col.find_one({"_id": profile_id}, {"scripts": 1}) or {}
+    return doc.get("scripts", {}).get(preset, {})
+
+
 def save_script_to_cloud(profile_id: str, preset: str, filename: str, content: str) -> None:
     col = _get_col()
     if col is None:
         return
+    # Read → update in Python → write back the whole preset dict.
+    # This avoids MongoDB dot-notation splitting "script.txt" into nested fields.
+    scripts = _get_preset_scripts(col, profile_id, preset)
+    scripts[filename] = content
     col.update_one(
         {"_id": profile_id},
-        {"$set": {f"scripts.{preset}.{filename}": content}},
+        {"$set": {f"scripts.{preset}": scripts}},
         upsert=True,
     )
 
@@ -76,9 +85,12 @@ def delete_script_from_cloud(profile_id: str, preset: str, filename: str) -> Non
     col = _get_col()
     if col is None:
         return
+    scripts = _get_preset_scripts(col, profile_id, preset)
+    scripts.pop(filename, None)
     col.update_one(
         {"_id": profile_id},
-        {"$unset": {f"scripts.{preset}.{filename}": ""}},
+        {"$set": {f"scripts.{preset}": scripts}},
+        upsert=True,
     )
 
 
