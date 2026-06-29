@@ -27,6 +27,10 @@ def download_media(
     if os.path.isdir(_win_ffmpeg):
         ydl_opts["ffmpeg_location"] = _win_ffmpeg
 
+    # Point yt-dlp to nodejs binary (Debian installs as /usr/bin/nodejs, not /usr/bin/node)
+    if os.path.exists("/usr/bin/nodejs"):
+        ydl_opts["js_runtimes"] = ["node:/usr/bin/nodejs"]
+
     cookies_file = os.environ.get("YOUTUBE_COOKIES_FILE")
     if cookies_file and os.path.exists(cookies_file):
         ydl_opts["cookiefile"] = cookies_file
