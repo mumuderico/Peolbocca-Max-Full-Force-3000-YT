@@ -1,5 +1,6 @@
 import os
 import yt_dlp
+from pytubefix import YouTube
 
 
 QUALITY_FORMATS = {
@@ -7,6 +8,27 @@ QUALITY_FORMATS = {
     "medium": "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]",
     "low": "bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]",
 }
+
+_QUALITY_RES = {"best": None, "medium": "720p", "low": "480p"}
+
+
+def _download_with_pytubefix(url: str, output_dir: str, media_type: str, quality: str) -> str:
+    yt = YouTube(url, use_oauth=False, allow_oauth_cache=False)
+
+    if media_type == "audio":
+        stream = yt.streams.get_audio_only()
+        path = stream.download(output_path=output_dir)
+        base = os.path.splitext(path)[0] + ".mp3"
+        os.rename(path, base)
+        return base
+
+    res = _QUALITY_RES.get(quality)
+    stream = None
+    if res:
+        stream = yt.streams.filter(res=res, file_extension="mp4", progressive=True).first()
+    if stream is None:
+        stream = yt.streams.get_highest_resolution()
+    return stream.download(output_path=output_dir)
 
 
 def download_media(
@@ -16,6 +38,11 @@ def download_media(
     quality: str = "best",
 ) -> str:
     os.makedirs(output_dir, exist_ok=True)
+
+    try:
+        return _download_with_pytubefix(url, output_dir, media_type, quality)
+    except Exception:
+        pass
 
     _win_ffmpeg = r"C:\Program Files\FFmpeg\bin"
     ydl_opts = {
