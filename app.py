@@ -3,12 +3,17 @@ import tempfile
 import streamlit as st
 
 # Write YouTube cookies to a temp file once at startup
-_cookies = st.secrets.get("YOUTUBE_COOKIES", "")
+try:
+    _cookies = st.secrets["YOUTUBE_COOKIES"]
+except (KeyError, FileNotFoundError):
+    _cookies = ""
+
 if _cookies and not os.environ.get("YOUTUBE_COOKIES_FILE"):
     _f = tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False)
     _f.write(_cookies)
     _f.close()
     os.environ["YOUTUBE_COOKIES_FILE"] = _f.name
+    print(f"[startup] cookies file written: {_f.name}")
 
 from ui.tab_script_writer import render_script_writer
 from ui.tab_downloader import render_downloader
