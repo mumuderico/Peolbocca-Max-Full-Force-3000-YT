@@ -22,8 +22,9 @@ def download_media(
         "format": QUALITY_FORMATS.get(quality, QUALITY_FORMATS["best"]),
         "quiet": True,
         "no_warnings": True,
-        "ffmpeg_location": r"C:\Program Files\FFmpeg\bin",
     }
+    if os.path.isdir(r"C:\Program Files\FFmpeg\bin"):
+        ydl_opts["ffmpeg_location"] = r"C:\Program Files\FFmpeg\bin"
 
     if media_type == "audio":
         ydl_opts["format"] = "bestaudio/best"
