@@ -273,6 +273,9 @@ audio {
     padding-left: 1.5rem !important;
 }
 
+/* Hide heading anchor link icons */
+[data-testid="stHeadingActionElements"] { display: none !important; }
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
