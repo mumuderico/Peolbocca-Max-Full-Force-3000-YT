@@ -162,6 +162,7 @@ def gerar_roteiro_completo(
     system_prompt: str,
     api_key: str,
     provider: str,
+    language: str = "Portuguese",
 ) -> str:
     prompt = f"""Tema do vídeo: "{tema}"
 Ângulo: "{angulo}"
@@ -173,6 +174,7 @@ Estrutura (setups, tensões e payoffs):
 {estrutura}
 
 Agora escreva o roteiro completo em ordem, do hook ao payoff final.
+- CRÍTICO: o roteiro inteiro deve ser escrito em {language}. Não use nenhuma outra língua.
 - Use linguagem conversacional e informal
 - Aplique todos os princípios de roteirização
 - Evite todas as palavras e estruturas do Anti-Slop

@@ -51,13 +51,13 @@ def _get_api_key_and_provider():
 
 
 def _lf_reset():
-    for key in ["lf_step", "lf_tema", "lf_system_prompt", "lf_angulos_raw",
+    for key in ["lf_step", "lf_tema", "lf_language", "lf_system_prompt", "lf_angulos_raw",
                 "lf_angulo_escolhido", "lf_payoffs", "lf_estrutura",
                 "lf_hooks_raw", "lf_hook_escolhido", "lf_roteiro"]:
         st.session_state.pop(key, None)
 
 
-def _render_longform(topic: str):
+def _render_longform(topic: str, language: str = "Portuguese"):
     step = st.session_state.get("lf_step", 0)
     api_key, provider = _get_api_key_and_provider()
 
@@ -77,6 +77,7 @@ def _render_longform(topic: str):
                     angulos = gerar_angulos(topic, sys_prompt, api_key, provider)
                     st.session_state["lf_step"] = 1
                     st.session_state["lf_tema"] = topic
+                    st.session_state["lf_language"] = language
                     st.session_state["lf_system_prompt"] = sys_prompt
                     st.session_state["lf_angulos_raw"] = angulos
                     st.rerun()
@@ -173,6 +174,7 @@ def _render_longform(topic: str):
                                 sys_prompt,
                                 api_key,
                                 provider,
+                                language=st.session_state.get("lf_language", "Portuguese"),
                             )
                             st.session_state["lf_hook_escolhido"] = hook_texto
                             st.session_state["lf_roteiro"] = roteiro
@@ -240,7 +242,7 @@ def render_script_writer():
         st.markdown("<div style='height: 8px'></div>", unsafe_allow_html=True)
 
         if platform == "Long Form":
-            _render_longform(topic)
+            _render_longform(topic, language)
         else:
             if st.button(t("sw_generate_btn"), type="primary", use_container_width=True):
                 if not topic.strip():
