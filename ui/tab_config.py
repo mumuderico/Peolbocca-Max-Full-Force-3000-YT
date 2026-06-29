@@ -87,7 +87,7 @@ def render_config():
             "TRANSCRIPTAPI_KEY": transcript_key,
             "CAPTION_REMOVER_PROVIDER": caption_provider,
             "REPLICATE_API_KEY": replicate_key,
-            "SCRIPT_PRESET": st.session_state.get("gen_style_preset", "Default"),
+            "SCRIPT_PRESET": st.session_state.get("gen_style_preset", ""),
         }
         save_profile(active, keys)
         st.session_state["user_keys"] = keys

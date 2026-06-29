@@ -53,10 +53,10 @@ def render_script_writer():
             default_idx = LANGUAGES.index(default_lang) if default_lang in LANGUAGES else 0
             language = st.selectbox(t("sw_language"), LANGUAGES, index=default_idx)
 
-        user_presets = list_presets(scripts_dir)
+        user_presets = [p for p in list_presets(scripts_dir) if p != "Default"]
         shared_labels = [_SHARED_PREFIX + p for p in list_shared_presets(shared_dir)]
-        all_presets = user_presets + shared_labels
-        saved_preset = get_key("SCRIPT_PRESET") or "Default"
+        all_presets = shared_labels + user_presets  # shared first so juanminiboi is the default
+        saved_preset = get_key("SCRIPT_PRESET") or ""
         preset_idx = all_presets.index(saved_preset) if saved_preset in all_presets else 0
         style_preset = st.selectbox(
             t("sw_style_preset"),
@@ -241,7 +241,7 @@ def render_script_writer():
                         st.success(t("sw_saved_to_preset", name=name, preset=active_preset))
                         st.rerun()
         else:
-            st.caption("Create a preset below to start your style library.")
+            st.caption("No personal presets yet. Create one below to build your style library.")
 
         with st.expander(t("sw_new_preset")):
             new_name = st.text_input(t("sw_preset_name_label"), placeholder=t("sw_preset_placeholder"), key="new_preset_name")
