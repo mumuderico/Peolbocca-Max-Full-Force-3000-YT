@@ -85,11 +85,14 @@ def generate_script(
 
     prompt = (
         f"You are a social media content creator. Generate a script for a {platform} video "
-        f"about \"{topic}\" written in {language}.\n\n"
+        f"about \"{topic}\".\n\n"
+        f"CRITICAL: The script MUST be written entirely in {language}. "
+        f"The style examples below may be in a different language — ignore their language and use them ONLY "
+        f"to learn the creator's tone, vocabulary style, and structure. Your output must be 100% in {language}.\n\n"
         f"Format: {platform_guide}.\n\n"
-        f"Here are examples of the creator's writing style — match their tone, vocabulary, and structure:\n\n"
+        f"Style examples (reference only — do NOT copy language, only style):\n\n"
         f"---\n{style_examples}\n---\n\n"
-        f"Write only the script text. No introductions, no meta-commentary."
+        f"Write only the script text in {language}. No introductions, no meta-commentary."
     )
 
     if provider == "groq":

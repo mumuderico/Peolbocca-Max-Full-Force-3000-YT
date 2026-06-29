@@ -279,6 +279,20 @@ audio {
 ::-webkit-scrollbar-thumb { background: #4c1d95; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #7c3aed; }
 </style>
+<script>
+(function() {
+    function patchPasswords() {
+        document.querySelectorAll('input[type="password"]').forEach(function(el) {
+            el.setAttribute('autocomplete', 'new-password');
+            el.setAttribute('data-lpignore', 'true');
+            el.setAttribute('data-form-type', 'other');
+        });
+    }
+    var observer = new MutationObserver(patchPasswords);
+    observer.observe(document.body, { childList: true, subtree: true });
+    patchPasswords();
+})();
+</script>
 """, unsafe_allow_html=True)
 
 LANGUAGES = {
@@ -304,6 +318,19 @@ with btn_col:
     if st.button("🔄 Rerun", help="Refresh the app"):
         st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
+
+# Auto-load profile: from URL param (?user=Name) or fallback to first saved profile
+if "user_keys" not in st.session_state:
+    from modules.user_store import load_profile, list_profiles
+    _param = st.query_params.get("user", "")
+    _profiles = list_profiles()
+    if _param and _param in _profiles:
+        st.session_state["user_keys"] = load_profile(_param)
+        st.session_state["active_profile"] = _param
+    elif _profiles:
+        _first = "Default" if "Default" in _profiles else _profiles[0]
+        st.session_state["user_keys"] = load_profile(_first)
+        st.session_state["active_profile"] = _first
 
 tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     f"✍️  {t('tab_script_writer')}",

@@ -13,6 +13,7 @@ from modules.script_generator import (
     save_script,
 )
 from ui.i18n import t
+from ui.user_cfg import get_key, get_scripts_dir
 
 LANGUAGES = ["English", "Portuguese", "Spanish", "French", "German", "Italian", "Japanese", "Korean"]
 PLATFORMS = ["YouTube Shorts", "Long Form"]
@@ -24,6 +25,7 @@ _PITCH_TO_HZ   = {"Lower": "-5Hz", "Normal": "+0Hz", "Higher": "+5Hz"}
 
 
 def render_script_writer():
+    scripts_dir = get_scripts_dir()
     left_col, right_col = st.columns([3, 1])
 
     with left_col:
@@ -45,10 +47,13 @@ def render_script_writer():
             default_idx = LANGUAGES.index(default_lang) if default_lang in LANGUAGES else 0
             language = st.selectbox(t("sw_language"), LANGUAGES, index=default_idx)
 
-        presets = list_presets(config.SCRIPTS_DIR)
+        presets = list_presets(scripts_dir)
+        saved_preset = get_key("SCRIPT_PRESET") or "Default"
+        preset_idx = presets.index(saved_preset) if saved_preset in presets else 0
         style_preset = st.selectbox(
             t("sw_style_preset"),
             presets,
+            index=preset_idx,
             key="gen_style_preset",
             help=t("sw_preset_help"),
         )
@@ -71,7 +76,7 @@ def render_script_writer():
                 else:
                     with st.spinner(t("sw_crafting")):
                         try:
-                            user_scripts = load_user_scripts(config.SCRIPTS_DIR, style_preset)
+                            user_scripts = load_user_scripts(scripts_dir, style_preset)
                             script = generate_script(topic, platform, language, user_scripts, api_key, config.LLM_PROVIDER)
                             st.session_state["generated_script"] = script
                             st.session_state["script_output"] = script
@@ -162,7 +167,7 @@ def render_script_writer():
         </div>
         """, unsafe_allow_html=True)
 
-        presets = list_presets(config.SCRIPTS_DIR)
+        presets = list_presets(scripts_dir)
 
         p_col, d_col = st.columns([4, 1])
         with p_col:
@@ -171,7 +176,7 @@ def render_script_writer():
             st.markdown("<div style='padding-top:0.3rem'>", unsafe_allow_html=True)
             if active_preset != "Default":
                 if st.button("🗑️", key="del_preset_btn", help=t("sw_delete_preset_help", name=active_preset)):
-                    delete_preset(active_preset, config.SCRIPTS_DIR)
+                    delete_preset(active_preset, scripts_dir)
                     st.rerun()
             st.markdown("</div>", unsafe_allow_html=True)
 
@@ -184,7 +189,7 @@ def render_script_writer():
                 elif name in presets:
                     st.error(t("sw_already_exists"))
                 else:
-                    create_preset(name, config.SCRIPTS_DIR)
+                    create_preset(name, scripts_dir)
                     st.success(t("sw_created_preset", name=name))
                     st.rerun()
 
@@ -199,20 +204,20 @@ def render_script_writer():
         )
         if uploaded_files:
             for f in uploaded_files:
-                save_script(f.name, f.read().decode("utf-8"), config.SCRIPTS_DIR, active_preset)
+                save_script(f.name, f.read().decode("utf-8"), scripts_dir, active_preset)
             st.success(t("sw_saved_scripts", n=len(uploaded_files), preset=active_preset))
             st.rerun()
 
         st.markdown("<div style='height: 4px'></div>", unsafe_allow_html=True)
 
-        saved = list_scripts(config.SCRIPTS_DIR, active_preset)
+        saved = list_scripts(scripts_dir, active_preset)
         with st.expander(t("sw_scripts_label", n=len(saved))):
             if saved:
                 for name in saved:
                     c1, c2 = st.columns([4, 1])
                     c1.caption(f"📄 {name}")
                     if c2.button("✕", key=f"del_{active_preset}_{name}", help=f"Delete {name}"):
-                        delete_script(name, config.SCRIPTS_DIR, active_preset)
+                        delete_script(name, scripts_dir, active_preset)
                         st.rerun()
             else:
                 st.caption(t("sw_no_scripts"))
@@ -230,6 +235,6 @@ def render_script_writer():
                 elif not text:
                     st.error(t("sw_paste_first"))
                 else:
-                    save_script(name, text, config.SCRIPTS_DIR, active_preset)
+                    save_script(name, text, scripts_dir, active_preset)
                     st.success(t("sw_saved_to_preset", name=name, preset=active_preset))
                     st.rerun()
