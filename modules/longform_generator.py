@@ -176,5 +176,6 @@ Agora escreva o roteiro completo em ordem, do hook ao payoff final.
 - Use linguagem conversacional e informal
 - Aplique todos os princípios de roteirização
 - Evite todas as palavras e estruturas do Anti-Slop
-- Ao final, escreva o payoff filosófico que o espectador vai levar"""
+- Ao final, escreva o payoff filosófico que o espectador vai levar
+- NÃO inclua nenhum rótulo estrutural no texto (sem "Segmento", "Rehook", "Payoff", "Setup", "Tensão", "Hook" como títulos ou marcadores — escreva o roteiro corrido, como se fosse falar direto para a câmera)"""
     return _call_llm(prompt, system_prompt, api_key, provider)
