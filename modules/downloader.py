@@ -17,13 +17,15 @@ def download_media(
 ) -> str:
     os.makedirs(output_dir, exist_ok=True)
 
+    _win_ffmpeg = r"C:\Program Files\FFmpeg\bin"
     ydl_opts = {
         "outtmpl": os.path.join(output_dir, "%(title)s.%(ext)s"),
         "format": QUALITY_FORMATS.get(quality, QUALITY_FORMATS["best"]),
         "quiet": True,
         "no_warnings": True,
-        "ffmpeg_location": r"C:\Program Files\FFmpeg\bin",
     }
+    if os.path.isdir(_win_ffmpeg):
+        ydl_opts["ffmpeg_location"] = _win_ffmpeg
 
     if media_type == "audio":
         ydl_opts["format"] = "bestaudio/best"
