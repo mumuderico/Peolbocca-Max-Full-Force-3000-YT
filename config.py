@@ -12,10 +12,11 @@ REPLICATE_API_KEY = ""             # only needed if CAPTION_REMOVER_PROVIDER = "
 TRANSCRIPTAPI_KEY = ""
 
 SCRIPTS_DIR = "data/my_scripts"
+SHARED_SCRIPTS_DIR = "data/shared_scripts"
 DOWNLOADS_DIR = "downloads"
 
-# Environment variables override the values above (used on hosted platforms).
-# Locally, values are read from this file via the ⚙️ Config tab.
+# Environment variables override the defaults above (used on hosted platforms).
+# Locally, keys are stored per-user in keys.json via the ⚙️ Config tab.
 import os as _os, sys as _sys
 _m = _sys.modules[__name__]
 for _k in [

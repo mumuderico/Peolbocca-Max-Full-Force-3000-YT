@@ -9,8 +9,13 @@ from modules.script_generator import (
     generate_voiceover,
     list_presets,
     list_scripts,
+    list_shared_presets,
+    list_shared_scripts,
+    load_shared_scripts,
     load_user_scripts,
     save_script,
+    save_shared_script,
+    delete_shared_script,
 )
 from ui.i18n import t
 from ui.user_cfg import get_key, get_scripts_dir
@@ -24,8 +29,11 @@ _PITCH_OPTIONS = ["Lower", "Normal", "Higher"]
 _PITCH_TO_HZ   = {"Lower": "-5Hz", "Normal": "+0Hz", "Higher": "+5Hz"}
 
 
+_SHARED_PREFIX = "🌐 "
+
 def render_script_writer():
     scripts_dir = get_scripts_dir()
+    shared_dir = config.SHARED_SCRIPTS_DIR
     left_col, right_col = st.columns([3, 1])
 
     with left_col:
@@ -47,12 +55,14 @@ def render_script_writer():
             default_idx = LANGUAGES.index(default_lang) if default_lang in LANGUAGES else 0
             language = st.selectbox(t("sw_language"), LANGUAGES, index=default_idx)
 
-        presets = list_presets(scripts_dir)
+        user_presets = list_presets(scripts_dir)
+        shared_labels = [_SHARED_PREFIX + p for p in list_shared_presets(shared_dir)]
+        all_presets = user_presets + shared_labels
         saved_preset = get_key("SCRIPT_PRESET") or "Default"
-        preset_idx = presets.index(saved_preset) if saved_preset in presets else 0
+        preset_idx = all_presets.index(saved_preset) if saved_preset in all_presets else 0
         style_preset = st.selectbox(
             t("sw_style_preset"),
-            presets,
+            all_presets,
             index=preset_idx,
             key="gen_style_preset",
             help=t("sw_preset_help"),
@@ -77,7 +87,10 @@ def render_script_writer():
                 else:
                     with st.spinner(t("sw_crafting")):
                         try:
-                            user_scripts = load_user_scripts(scripts_dir, style_preset)
+                            if style_preset.startswith(_SHARED_PREFIX):
+                                user_scripts = load_shared_scripts(shared_dir, style_preset[len(_SHARED_PREFIX):])
+                            else:
+                                user_scripts = load_user_scripts(scripts_dir, style_preset)
                             script = generate_script(topic, platform, language, user_scripts, api_key, llm_provider)
                             st.session_state["generated_script"] = script
                             st.session_state["script_output"] = script
@@ -241,3 +254,41 @@ def render_script_writer():
                     save_script(name, text, scripts_dir, active_preset)
                     st.success(t("sw_saved_to_preset", name=name, preset=active_preset))
                     st.rerun()
+
+        # ── Shared Library ────────────────────────────────────────────
+        st.divider()
+        st.markdown("""
+        <div style="margin-bottom:0.5rem;">
+            <span style="font-size:0.85rem;font-weight:700;color:#e2e8f0;">🌐 Shared Library</span><br>
+            <span style="font-size:0.72rem;color:#64748b;">Available to all users</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+        shared_presets = list_shared_presets(shared_dir)
+        if shared_presets:
+            active_shared = st.selectbox("Shared preset", shared_presets, key="lib_shared_preset", label_visibility="collapsed")
+
+            shared_up = st.file_uploader(
+                "Upload to shared",
+                type=["txt"],
+                accept_multiple_files=True,
+                key=f"shared_uploader_{active_shared}",
+                label_visibility="collapsed",
+            )
+            if shared_up:
+                for f in shared_up:
+                    save_shared_script(f.name, f.read().decode("utf-8"), shared_dir, active_shared)
+                st.success(f"Saved {len(shared_up)} file(s) to 🌐 {active_shared}")
+                st.rerun()
+
+            shared_saved = list_shared_scripts(shared_dir, active_shared)
+            with st.expander(f"Scripts ({len(shared_saved)})"):
+                if shared_saved:
+                    for sname in shared_saved:
+                        sc1, sc2 = st.columns([4, 1])
+                        sc1.caption(f"📄 {sname}")
+                        if sc2.button("✕", key=f"del_shared_{active_shared}_{sname}", help=f"Delete {sname}"):
+                            delete_shared_script(sname, shared_dir, active_shared)
+                            st.rerun()
+                else:
+                    st.caption("No scripts yet.")

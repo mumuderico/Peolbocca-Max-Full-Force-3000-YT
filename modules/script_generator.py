@@ -74,6 +74,41 @@ def delete_script(filename: str, scripts_dir: str, preset: str = "Default") -> N
     _sync(delete_script_from_cloud, _profile_id(), preset, filename)
 
 
+def list_shared_presets(shared_dir: str) -> list[str]:
+    if not os.path.exists(shared_dir):
+        return []
+    return sorted(n for n in os.listdir(shared_dir) if os.path.isdir(os.path.join(shared_dir, n)))
+
+
+def list_shared_scripts(shared_dir: str, preset: str) -> list[str]:
+    target = os.path.join(shared_dir, preset)
+    if not os.path.exists(target):
+        return []
+    return sorted(f for f in os.listdir(target) if f.endswith(".txt") and os.path.isfile(os.path.join(target, f)))
+
+
+def load_shared_scripts(shared_dir: str, preset: str) -> list[str]:
+    target = os.path.join(shared_dir, preset)
+    contents = []
+    for filename in list_shared_scripts(shared_dir, preset):
+        with open(os.path.join(target, filename), "r", encoding="utf-8") as f:
+            contents.append(f.read())
+    return contents
+
+
+def save_shared_script(filename: str, content: str, shared_dir: str, preset: str) -> None:
+    target = os.path.join(shared_dir, preset)
+    os.makedirs(target, exist_ok=True)
+    with open(os.path.join(target, filename), "w", encoding="utf-8") as f:
+        f.write(content)
+
+
+def delete_shared_script(filename: str, shared_dir: str, preset: str) -> None:
+    path = os.path.join(shared_dir, preset, filename)
+    if os.path.exists(path):
+        os.remove(path)
+
+
 def load_user_scripts(scripts_dir: str, preset: str = "Default") -> list[str]:
     target = _preset_dir(scripts_dir, preset)
     contents = []
