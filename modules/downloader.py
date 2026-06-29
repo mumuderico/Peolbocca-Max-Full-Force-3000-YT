@@ -1,6 +1,5 @@
 import os
 import yt_dlp
-from pytubefix import YouTube
 
 
 QUALITY_FORMATS = {
@@ -13,6 +12,7 @@ _QUALITY_RES = {"best": None, "medium": "720p", "low": "480p"}
 
 
 def _download_with_pytubefix(url: str, output_dir: str, media_type: str, quality: str) -> str:
+    from pytubefix import YouTube
     yt = YouTube(url, use_oauth=False, allow_oauth_cache=False)
 
     if media_type == "audio":
