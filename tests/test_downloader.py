@@ -64,3 +64,55 @@ def test_download_propagates_ydl_exception(tmp_path, mocker):
 
     with pytest.raises(Exception, match="Video unavailable"):
         download_media("https://invalid.example.com", str(tmp_path))
+
+
+def test_download_tries_next_client_on_failure(mocker):
+    def fake_ydl(opts):
+        client = opts.get("extractor_args", {}).get("youtube", {}).get("player_client", [None])[0]
+        ctx = mocker.MagicMock()
+        if client == "web_embedded":
+            ctx.__enter__ = mocker.MagicMock(return_value=ctx)
+            ctx.__exit__ = mocker.MagicMock(return_value=False)
+            ctx.extract_info = mocker.MagicMock(side_effect=Exception("bot detected"))
+        else:
+            info = {"title": "test", "ext": "mp4"}
+            ctx.__enter__ = mocker.MagicMock(return_value=ctx)
+            ctx.__exit__ = mocker.MagicMock(return_value=False)
+            ctx.extract_info = mocker.MagicMock(return_value=info)
+            ctx.prepare_filename = mocker.MagicMock(return_value="/tmp/test.mp4")
+        return ctx
+
+    mocker.patch("yt_dlp.YoutubeDL", side_effect=fake_ydl)
+    from modules.downloader import download_media
+    result = download_media("https://youtube.com/watch?v=test", "/tmp", "video", "best")
+    assert result == "/tmp/test.mp4"
+
+
+def test_download_raises_after_all_clients_fail(mocker):
+    ctx = mocker.MagicMock()
+    ctx.__enter__ = mocker.MagicMock(return_value=ctx)
+    ctx.__exit__ = mocker.MagicMock(return_value=False)
+    ctx.extract_info = mocker.MagicMock(side_effect=Exception("all blocked"))
+    mocker.patch("yt_dlp.YoutubeDL", return_value=ctx)
+    from modules.downloader import download_media
+    with pytest.raises(Exception, match="all blocked"):
+        download_media("https://youtube.com/watch?v=test", "/tmp", "video", "best")
+
+
+def test_download_sets_browser_user_agent(mocker):
+    captured = {}
+
+    def fake_ydl(opts):
+        captured["opts"] = opts
+        ctx = mocker.MagicMock()
+        ctx.__enter__ = mocker.MagicMock(return_value=ctx)
+        ctx.__exit__ = mocker.MagicMock(return_value=False)
+        info = {"title": "test", "ext": "mp4"}
+        ctx.extract_info = mocker.MagicMock(return_value=info)
+        ctx.prepare_filename = mocker.MagicMock(return_value="/tmp/test.mp4")
+        return ctx
+
+    mocker.patch("yt_dlp.YoutubeDL", side_effect=fake_ydl)
+    from modules.downloader import download_media
+    download_media("https://youtube.com/watch?v=test", "/tmp", "video", "best")
+    assert "User-Agent" in captured["opts"].get("http_headers", {})
