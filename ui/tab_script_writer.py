@@ -64,20 +64,21 @@ def render_script_writer():
             if not topic.strip():
                 st.error(t("sw_enter_name"))
             else:
+                llm_provider = get_key("LLM_PROVIDER") or config.LLM_PROVIDER
                 key_map = {
-                    "groq": config.GROQ_API_KEY,
-                    "gemini": config.GEMINI_API_KEY,
-                    "anthropic": config.ANTHROPIC_API_KEY,
-                    "openai": config.OPENAI_API_KEY,
+                    "groq": get_key("GROQ_API_KEY"),
+                    "gemini": get_key("GEMINI_API_KEY"),
+                    "anthropic": get_key("ANTHROPIC_API_KEY"),
+                    "openai": get_key("OPENAI_API_KEY"),
                 }
-                api_key = key_map.get(config.LLM_PROVIDER, "")
+                api_key = key_map.get(llm_provider, "")
                 if not api_key:
-                    st.error(t("sw_no_api_key", provider=config.LLM_PROVIDER.upper()))
+                    st.error(t("sw_no_api_key", provider=llm_provider.upper()))
                 else:
                     with st.spinner(t("sw_crafting")):
                         try:
                             user_scripts = load_user_scripts(scripts_dir, style_preset)
-                            script = generate_script(topic, platform, language, user_scripts, api_key, config.LLM_PROVIDER)
+                            script = generate_script(topic, platform, language, user_scripts, api_key, llm_provider)
                             st.session_state["generated_script"] = script
                             st.session_state["script_output"] = script
                         except Exception as e:
@@ -139,7 +140,9 @@ def render_script_writer():
                 gender = st.session_state.get("vo_gender", "Female")
                 st.caption(t("sw_voc_settings_caption", gender=gender, pace=pace, pitch=pitch))
                 if st.button(t("sw_generate_voc_btn")):
-                    if config.TTS_PROVIDER == "elevenlabs" and not config.ELEVENLABS_API_KEY:
+                    tts_provider = get_key("TTS_PROVIDER") or config.TTS_PROVIDER
+                    elevenlabs_key = get_key("ELEVENLABS_API_KEY")
+                    if tts_provider == "elevenlabs" and not elevenlabs_key:
                         st.error(t("sw_elevenlabs_missing"))
                     else:
                         audio_path = os.path.join(config.DOWNLOADS_DIR, "voiceover.mp3")
@@ -147,8 +150,8 @@ def render_script_writer():
                             generate_voiceover(
                                 st.session_state["generated_script"],
                                 audio_path,
-                                config.TTS_PROVIDER,
-                                config.ELEVENLABS_API_KEY,
+                                tts_provider,
+                                elevenlabs_key,
                                 rate=_PACE_TO_RATE[pace],
                                 pitch=_PITCH_TO_HZ[pitch],
                                 gender=gender,
