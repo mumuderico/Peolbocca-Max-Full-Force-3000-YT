@@ -103,13 +103,22 @@ def restore_scripts(profile_id: str, scripts_base_dir: str) -> None:
     col = _get_col()
     if col is None:
         return
-    doc = col.find_one({"_id": profile_id}, {"scripts": 1})
-    if not doc or "scripts" not in doc:
-        return
-    user_dir = os.path.join(scripts_base_dir, profile_id)
-    for preset, files in doc["scripts"].items():
-        preset_dir = user_dir if preset == "Default" else os.path.join(user_dir, preset)
-        os.makedirs(preset_dir, exist_ok=True)
-        for filename, content in files.items():
-            with open(os.path.join(preset_dir, filename), "w", encoding="utf-8") as f:
-                f.write(content)
+    try:
+        doc = col.find_one({"_id": profile_id}, {"scripts": 1})
+        if not doc or "scripts" not in doc:
+            return
+        user_dir = os.path.join(scripts_base_dir, profile_id)
+        for preset, files in doc["scripts"].items():
+            if not isinstance(files, dict):
+                continue
+            preset_dir = user_dir if preset == "Default" else os.path.join(user_dir, preset)
+            os.makedirs(preset_dir, exist_ok=True)
+            for filename, content in files.items():
+                try:
+                    text = content if isinstance(content, str) else str(content)
+                    with open(os.path.join(preset_dir, filename), "w", encoding="utf-8") as f:
+                        f.write(text)
+                except Exception:
+                    pass
+    except Exception:
+        pass
