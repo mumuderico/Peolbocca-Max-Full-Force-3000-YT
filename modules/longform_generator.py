@@ -164,20 +164,25 @@ def gerar_roteiro_completo(
     provider: str,
     language: str = "Portuguese",
 ) -> str:
-    prompt = f"""Tema do vídeo: "{tema}"
-Ângulo: "{angulo}"
+    prompt = f"""LANGUAGE REQUIREMENT — THIS IS MANDATORY AND OVERRIDES EVERYTHING ELSE:
+The entire script MUST be written in {language}. Every single word must be in {language}. Do not use any other language. Not even partially.
 
-Hook escolhido:
+---
+
+Video topic: "{tema}"
+Chosen angle: "{angulo}"
+
+Chosen hook:
 {hook}
 
-Estrutura (setups, tensões e payoffs):
+Structure (setups, tensions and payoffs):
 {estrutura}
 
-Agora escreva o roteiro completo em ordem, do hook ao payoff final.
-- CRÍTICO: o roteiro inteiro deve ser escrito em {language}. Não use nenhuma outra língua.
-- Use linguagem conversacional e informal
-- Aplique todos os princípios de roteirização
-- Evite todas as palavras e estruturas do Anti-Slop
-- Ao final, escreva o payoff filosófico que o espectador vai levar
-- NÃO inclua nenhum rótulo estrutural no texto (sem "Segmento", "Rehook", "Payoff", "Setup", "Tensão", "Hook" como títulos ou marcadores — escreva o roteiro corrido, como se fosse falar direto para a câmera)"""
+Now write the complete script from the hook to the final payoff.
+- Write in {language} only — no exceptions
+- Use conversational and informal language
+- Apply all scriptwriting principles from the system prompt
+- Avoid all Anti-Slop words and structures
+- Write the final philosophical payoff at the end
+- Do NOT include any structural labels (no "Segment", "Rehook", "Payoff", "Setup", "Tension", "Hook" as titles or markers — write the script as a continuous flow, as if speaking directly to the camera)"""
     return _call_llm(prompt, system_prompt, api_key, provider)
