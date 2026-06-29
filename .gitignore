@@ -12,3 +12,4 @@ data/my_scripts/*
 *.mov
 *.webm
 .streamlit/secrets.toml
+keys.json

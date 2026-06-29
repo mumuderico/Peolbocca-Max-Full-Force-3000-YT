@@ -2,6 +2,7 @@ import os
 import tempfile
 import streamlit as st
 import config
+from ui.user_cfg import get_key
 from modules.caption_remover import remove_captions
 from ui.i18n import t
 
@@ -46,8 +47,8 @@ def render_caption_remover():
                 result_path = remove_captions(
                     input_path,
                     output_path,
-                    provider=config.CAPTION_REMOVER_PROVIDER,
-                    replicate_api_key=config.REPLICATE_API_KEY,
+                    provider=get_key("CAPTION_REMOVER_PROVIDER"),
+                    replicate_api_key=get_key("REPLICATE_API_KEY"),
                     ocr_every_n_frames=ocr_interval,
                     caption_zone=caption_zone / 100,
                     progress_callback=on_progress,

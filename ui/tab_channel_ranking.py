@@ -1,6 +1,7 @@
 import time
 import streamlit as st
 import config
+from ui.user_cfg import get_key
 from modules.channel_ranker import fetch_trending_channels
 from ui.i18n import t
 
@@ -41,7 +42,7 @@ def render_channel_ranking():
     st.header(t("rk_header"))
     st.caption(t("rk_caption"))
 
-    if not config.YOUTUBE_API_KEY:
+    if not get_key("YOUTUBE_API_KEY"):
         st.error(t("rk_add_key"))
         return
 
@@ -68,7 +69,7 @@ def render_channel_ranking():
     if st.button(t("rk_load_btn"), type="primary"):
         with st.spinner(t("rk_fetching", country=country_name)):
             try:
-                results = fetch_trending_channels(country_code, config.YOUTUBE_API_KEY)
+                results = fetch_trending_channels(country_code, get_key("YOUTUBE_API_KEY"))
                 st.session_state[cache_key] = results
                 st.session_state[cache_ts_key] = time.time()
             except Exception as e:

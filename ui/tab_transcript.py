@@ -1,5 +1,6 @@
 import streamlit as st
 import config
+from ui.user_cfg import get_key
 from youtube_transcript_api import TranscriptsDisabled, NoTranscriptFound
 from modules.transcriber import (
     get_transcript,
@@ -14,7 +15,7 @@ from ui.i18n import t
 def render_transcript():
     st.header(t("tr_header"))
 
-    if not config.TRANSCRIPTAPI_KEY:
+    if not get_key("TRANSCRIPTAPI_KEY"):
         st.info(t("tr_tip"), icon="💡")
 
     url = st.text_input(t("tr_url_label"), placeholder=t("tr_url_placeholder"))
@@ -25,7 +26,7 @@ def render_transcript():
             st.error(t("tr_enter_url"))
             return
 
-        if not config.TRANSCRIPTAPI_KEY:
+        if not get_key("TRANSCRIPTAPI_KEY"):
             try:
                 extract_video_id(url.strip())
             except ValueError:
@@ -37,7 +38,7 @@ def render_transcript():
                 transcript = get_transcript(
                     url.strip(),
                     include_timestamps=include_timestamps,
-                    api_key=config.TRANSCRIPTAPI_KEY,
+                    api_key=get_key("TRANSCRIPTAPI_KEY"),
                 )
                 st.session_state["transcript"] = transcript
                 st.session_state["transcript_url"] = url.strip()
