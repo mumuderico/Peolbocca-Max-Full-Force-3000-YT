@@ -4,16 +4,18 @@ falling back to local keys.json for local development.
 """
 import os
 
+import time as _time
+
 _col = None
-_col_unavailable = False  # set True after first failed attempt to avoid retrying
+_col_retry_after = 0.0  # epoch timestamp — retry connection after this time
 
 
 def _get_col():
-    global _col, _col_unavailable
+    global _col, _col_retry_after
     if _col is not None:
         return _col
-    if _col_unavailable:
-        return None
+    if _time.time() < _col_retry_after:
+        return None  # still in cooldown, don't block the request
     uri = os.environ.get("MONGODB_URI", "")
     if not uri:
         try:
@@ -22,16 +24,17 @@ def _get_col():
         except Exception:
             pass
     if not uri:
-        _col_unavailable = True
+        _col_retry_after = _time.time() + 120.0  # no URI configured, wait 2 min
         return None
     try:
         from pymongo import MongoClient
-        client = MongoClient(uri, serverSelectionTimeoutMS=3000)
+        client = MongoClient(uri, serverSelectionTimeoutMS=5000, connectTimeoutMS=5000)
         client.admin.command("ping")
         _col = client["streamlit_app"]["users"]
+        _col_retry_after = 0.0  # success — clear any cooldown
         return _col
     except Exception:
-        _col_unavailable = True
+        _col_retry_after = _time.time() + 30.0  # failed — retry after 30 seconds
         return None
 
 
