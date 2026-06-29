@@ -4,9 +4,9 @@ import yt_dlp
 
 
 QUALITY_FORMATS = {
-    "best": "bestvideo+bestaudio/best",
-    "medium": "bestvideo[height<=720]+bestaudio/best[height<=720]/best",
-    "low": "bestvideo[height<=480]+bestaudio/best[height<=480]/best",
+    "best": "best[ext=mp4]/best",
+    "medium": "best[height<=720][ext=mp4]/best[height<=720]/best",
+    "low": "best[height<=480][ext=mp4]/best[height<=480]/best",
 }
 
 
