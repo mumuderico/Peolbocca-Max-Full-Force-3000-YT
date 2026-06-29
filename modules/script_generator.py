@@ -1,6 +1,5 @@
 import asyncio
 import os
-import threading
 import streamlit as st
 
 
@@ -29,7 +28,10 @@ def _profile_id() -> str:
 
 
 def _sync(fn, *args):
-    threading.Thread(target=fn, args=args, daemon=True).start()
+    try:
+        fn(*args)
+    except Exception:
+        pass
 
 
 def create_preset(name: str, scripts_dir: str) -> None:
