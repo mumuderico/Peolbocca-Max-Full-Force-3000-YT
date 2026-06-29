@@ -39,6 +39,16 @@ _PITCH_TO_HZ   = {"Lower": "-5Hz", "Normal": "+0Hz", "Higher": "+5Hz"}
 _SHARED_PREFIX = "🌐 "
 
 
+def _lf_error(e: Exception) -> str:
+    msg = str(e)
+    if "429" in msg or "rate_limit" in msg.lower():
+        import re
+        wait = re.search(r"try again in (\d+m[\d.]+s|\d+s)", msg)
+        wait_str = f" Tente novamente em {wait.group(1)}." if wait else ""
+        return f"⏳ Limite de tokens do Groq atingido.{wait_str}"
+    return f"Erro: {e}"
+
+
 def _get_api_key_and_provider():
     provider = get_key("LLM_PROVIDER") or config.LLM_PROVIDER
     key_map = {
@@ -82,7 +92,7 @@ def _render_longform(topic: str, language: str = "Portuguese"):
                     st.session_state["lf_angulos_raw"] = angulos
                     st.rerun()
                 except Exception as e:
-                    st.error(f"Erro ao gerar ângulos: {e}")
+                    st.error(_lf_error(e))
         return
 
     tema = st.session_state["lf_tema"]
@@ -106,7 +116,7 @@ def _render_longform(topic: str, language: str = "Portuguese"):
                             st.session_state["lf_step"] = 2
                             st.rerun()
                         except Exception as e:
-                            st.error(f"Erro ao gerar payoffs: {e}")
+                            st.error(_lf_error(e))
 
     # ── Step 2: confirm payoffs ─────────────────────────────────────────
     if step >= 2:
@@ -126,7 +136,7 @@ def _render_longform(topic: str, language: str = "Portuguese"):
                                 st.session_state["lf_step"] = 3
                                 st.rerun()
                             except Exception as e:
-                                st.error(f"Erro ao gerar estrutura: {e}")
+                                st.error(_lf_error(e))
                 with col2:
                     if st.button("Gerar novamente", use_container_width=True):
                         with st.spinner("Regerando payoffs..."):
@@ -135,7 +145,7 @@ def _render_longform(topic: str, language: str = "Portuguese"):
                                 st.session_state["lf_payoffs"] = payoffs
                                 st.rerun()
                             except Exception as e:
-                                st.error(f"Erro ao regerar payoffs: {e}")
+                                st.error(_lf_error(e))
 
     # ── Step 3: structure (auto) ────────────────────────────────────────
     if step >= 3:
@@ -152,7 +162,7 @@ def _render_longform(topic: str, language: str = "Portuguese"):
                             st.session_state["lf_step"] = 4
                             st.rerun()
                         except Exception as e:
-                            st.error(f"Erro ao gerar hooks: {e}")
+                            st.error(_lf_error(e))
 
     # ── Step 4: choose hook ─────────────────────────────────────────────
     if step >= 4:
@@ -181,7 +191,7 @@ def _render_longform(topic: str, language: str = "Portuguese"):
                             st.session_state["lf_step"] = 5
                             st.rerun()
                         except Exception as e:
-                            st.error(f"Erro ao gerar roteiro: {e}")
+                            st.error(_lf_error(e))
 
     # ── Step 5: complete script ─────────────────────────────────────────
     if step >= 5:

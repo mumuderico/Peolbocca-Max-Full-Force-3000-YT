@@ -47,13 +47,13 @@ def extract_option(raw_text: str, chosen_label: str) -> str:
     return "\n".join(lines[start:end]).strip()
 
 
-def _call_llm(user_prompt: str, system_prompt: str, api_key: str, provider: str) -> str:
+def _call_llm(user_prompt: str, system_prompt: str, api_key: str, provider: str, max_tokens: int = 1500) -> str:
     if provider == "groq":
         from groq import Groq
         client = Groq(api_key=api_key)
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
-            max_tokens=2000,
+            max_tokens=max_tokens,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
@@ -185,4 +185,4 @@ Now write the complete script from the hook to the final payoff.
 - Avoid all Anti-Slop words and structures
 - Write the final philosophical payoff at the end
 - Do NOT include any structural labels (no "Segment", "Rehook", "Payoff", "Setup", "Tension", "Hook" as titles or markers — write the script as a continuous flow, as if speaking directly to the camera)"""
-    return _call_llm(prompt, system_prompt, api_key, provider)
+    return _call_llm(prompt, system_prompt, api_key, provider, max_tokens=3000)
