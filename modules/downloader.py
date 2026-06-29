@@ -1,4 +1,5 @@
 import os
+import tempfile
 import yt_dlp
 
 
@@ -54,6 +55,15 @@ def download_media(
     if os.path.isdir(_win_ffmpeg):
         ydl_opts["ffmpeg_location"] = _win_ffmpeg
 
+    _tmp_cookies = None
+    cookies_content = os.environ.get("YOUTUBE_COOKIES")
+    if cookies_content:
+        tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False)
+        tmp.write(cookies_content)
+        tmp.close()
+        _tmp_cookies = tmp.name
+        ydl_opts["cookiefile"] = _tmp_cookies
+
     if media_type == "audio":
         ydl_opts["format"] = "bestaudio/best"
         ydl_opts["postprocessors"] = [
@@ -64,9 +74,13 @@ def download_media(
             }
         ]
 
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(url, download=True)
-        filename = ydl.prepare_filename(info)
-        if media_type == "audio":
-            filename = os.path.splitext(filename)[0] + ".mp3"
-        return filename
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=True)
+            filename = ydl.prepare_filename(info)
+            if media_type == "audio":
+                filename = os.path.splitext(filename)[0] + ".mp3"
+            return filename
+    finally:
+        if _tmp_cookies and os.path.exists(_tmp_cookies):
+            os.unlink(_tmp_cookies)
