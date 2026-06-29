@@ -305,18 +305,16 @@ with btn_col:
         st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 
-# Auto-load profile: from URL param (?user=Name) or fallback to first saved profile
-if "user_keys" not in st.session_state:
-    from modules.user_store import load_profile, list_profiles
+# Auto-assign a unique profile to every visitor via URL param
+import uuid as _uuid
+if "active_profile" not in st.session_state:
+    from modules.user_store import load_profile as _load_profile
     _param = st.query_params.get("user", "")
-    _profiles = list_profiles()
-    if _param and _param in _profiles:
-        st.session_state["user_keys"] = load_profile(_param)
-        st.session_state["active_profile"] = _param
-    elif _profiles:
-        _first = "Default" if "Default" in _profiles else _profiles[0]
-        st.session_state["user_keys"] = load_profile(_first)
-        st.session_state["active_profile"] = _first
+    if not _param:
+        _param = "u_" + _uuid.uuid4().hex[:12]
+        st.query_params["user"] = _param
+    st.session_state["user_keys"] = _load_profile(_param)
+    st.session_state["active_profile"] = _param
 
 tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     f"✍️  {t('tab_script_writer')}",

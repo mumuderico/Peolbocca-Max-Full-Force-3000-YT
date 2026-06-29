@@ -2,7 +2,7 @@ import time
 import streamlit as st
 import streamlit.components.v1 as components
 import config
-from modules.user_store import list_profiles, load_profile, save_profile
+from modules.user_store import save_profile
 from ui.user_cfg import get_key
 from ui.i18n import t
 
@@ -14,50 +14,7 @@ def _link(label: str, url: str) -> str:
 def render_config():
     st.header(t("cfg_header"))
 
-    # ── Profile picker ────────────────────────────────────────────
     active = st.session_state.get("active_profile")
-
-    if active:
-        st.success(f"👤 Active profile: **{active}**  —  Your keys are loaded.")
-    else:
-        st.warning("No profile loaded. Select or create one below, then click **Load**.")
-
-    profiles = list_profiles()
-    col_sel, col_new, col_load = st.columns([3, 3, 2])
-
-    with col_sel:
-        options = (profiles if profiles else []) + ["＋ New profile"]
-        choice = st.selectbox("Profile", options, label_visibility="collapsed", key="cfg_profile_choice")
-
-    with col_new:
-        new_name = ""
-        if choice == "＋ New profile":
-            new_name = st.text_input("Name", placeholder="e.g. Murilo", label_visibility="collapsed", key="cfg_new_name")
-
-    with col_load:
-        st.markdown("<div style='padding-top:4px'>", unsafe_allow_html=True)
-        if st.button("Load", use_container_width=True):
-            name = new_name.strip() if choice == "＋ New profile" else choice
-            if not name:
-                st.error("Enter a profile name.")
-            else:
-                st.session_state["user_keys"] = load_profile(name)
-                st.session_state["active_profile"] = name
-                st.session_state.pop("cfg_saved_ok", None)
-                st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    if active:
-        st.caption(
-            f"💡 Bookmark **?user={active}** in the URL to auto-load your profile every visit — "
-            f"e.g. `http://localhost:8501/?user={active}`"
-        )
-
-    st.divider()
-
-    if not active:
-        st.info("Load a profile above to configure your API keys.")
-        return
 
     # ── API key inputs ────────────────────────────────────────────
     st.subheader(t("cfg_script_writer"))
