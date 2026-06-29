@@ -132,7 +132,7 @@ Payoffs definidos:
 Agora escreva o Setup e a Tensão de cada segmento para conectar os payoffs.
 - Setup: contexto mínimo necessário para o espectador entender o que vem
 - Tensão: o problema, a contradição, a pergunta sem resposta
-- Inclua rehooks entre os segmentos (especialmente antes e depois do bloco do patrocinador)
+- Inclua rehooks entre os segmentos para manter o espectador engajado
 - Não escreva o roteiro final ainda — apenas a estrutura de cada segmento"""
     return _call_llm(prompt, system_prompt, api_key, provider)
 
@@ -176,6 +176,5 @@ Agora escreva o roteiro completo em ordem, do hook ao payoff final.
 - Use linguagem conversacional e informal
 - Aplique todos os princípios de roteirização
 - Evite todas as palavras e estruturas do Anti-Slop
-- Marque onde deve entrar o bloco do patrocinador com [PATROCINADOR]
 - Ao final, escreva o payoff filosófico que o espectador vai levar"""
     return _call_llm(prompt, system_prompt, api_key, provider)
